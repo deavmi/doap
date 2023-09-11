@@ -2,7 +2,6 @@
 docs.json
 __dummy.html
 docs/
-/doap
 doap.so
 doap.dylib
 doap.dll
@@ -14,6 +13,5 @@ doap-test-*
 *.o
 *.obj
 *.lst
-source/doap/codes.d
 libdoap.a
 dub.selections.json
