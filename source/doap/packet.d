@@ -29,7 +29,11 @@ public class CoapPacket
         ubyte firstByte = cast(ubyte)(ver << 6);
         firstByte = firstByte | cast(ubyte)(type << 4);
         firstByte = firstByte | tokenLen;
-        
+        encoded ~= firstByte;
+
+        // Set the request/response code
+        encoded ~= code;
+
         return encoded;
     }
 
