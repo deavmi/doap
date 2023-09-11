@@ -1,0 +1,10 @@
+{
+	"authors": [
+		"Tristan B. Velloza Kildaire"
+	],
+	"copyright": "Copyright © 2023, Tristan B. Velloza Kildaire",
+	"description": "CoAP library for D",
+	"license": "LGPL v3.0",
+	"name": "doap",
+	"targetType": "library"
+}
