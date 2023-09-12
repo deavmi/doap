@@ -73,6 +73,11 @@ public class CoapPacket
         }
     }
 
+    public void setCode(Code code)
+    {
+        this.code = code;
+    }
+
     // public ubyte getVersion()
     // {
 
@@ -96,9 +101,17 @@ version(unittest)
 unittest
 {
     CoapPacket packet = new CoapPacket();
+
     packet.setType(MessageType.RESET);
+
     ubyte[] token = [0, 69];
     packet.setToken(token);
+
+    packet.setCode(Code.PONG);
+
+
+
+
 
     ubyte[] encoded = packet.getBytes();
 
@@ -115,5 +128,18 @@ unittest
     // Ensure the token length is 2
     ubyte tklField = firstByte & 15;
     assert(tklField == token.length);
+
+    ubyte secondByte = encoded[1];
+
+    // Ensure the code is set to PONG
+    // Class is 7
+    // Code is 3
+    ubyte codeClass = cast(ubyte)(secondByte & 224)  >> 5;
+    assert(codeClass == 7);
+    ubyte code = (secondByte & (~224));
+    assert(code == 3);
+    writeln(codeClass);
+    writeln(code);
+    assert(secondByte == Code.PONG);
 
 }
