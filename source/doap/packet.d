@@ -2,6 +2,7 @@ module doap.packet;
 
 import doap.types : MessageType;
 import doap.codes : Code;
+import doap.exceptions : CoapException;
 
 /** 
  * Represents a CoAP packet
@@ -45,6 +46,31 @@ public class CoapPacket
     public void setType(MessageType type)
     {
         this.type = type;
+    }
+
+    public void setToken(ubyte[] token)
+    {
+        if(setTokenLength(token.length))
+        {
+            this.token = token;
+        }
+        else
+        {
+            throw new CoapException("Token length above 15 bytes not allowed");
+        }
+    }
+
+    private bool setTokenLength(ulong tkl)
+    {
+        if(tkl > 15)
+        {
+            return false;
+        }
+        else
+        {
+            this.tokenLen = cast(ubyte)tkl;
+            return true;    
+        }
     }
 
     // public ubyte getVersion()
