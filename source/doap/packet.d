@@ -34,7 +34,37 @@ public class CoapPacket
         // Set the request/response code
         encoded ~= code;
 
+        // Set the message ID
+        
+
         return encoded;
     }
+
+    // public ubyte getVersion()
+    // {
+
+    // }
+
+}
+
+/**
+ * Encoding tests
+ *
+ * These set high level parameters and then
+ * we call `getBytes()` and analyse the components
+ * of the encoded wire format by hand to ensure
+ * they are set in place correctly
+ */
+unittest
+{
+    CoapPacket packet = new CoapPacket();
+    ubyte[] encoded = packet.getBytes();
+
+    ubyte firstByte = encoded[0];
+
+    // Ensure the version is set to 1
+    ubyte versionField = cast(ubyte)(firstByte & 192) >> 6;
+    assert(versionField == 1);
+
 
 }
