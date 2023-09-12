@@ -97,6 +97,8 @@ unittest
 {
     CoapPacket packet = new CoapPacket();
     packet.setType(MessageType.RESET);
+    ubyte[] token = [0, 69];
+    packet.setToken(token);
 
     ubyte[] encoded = packet.getBytes();
 
@@ -109,5 +111,9 @@ unittest
     // Ensure the type is 3/RESET
     ubyte typeField = cast(ubyte)(firstByte & 48) >> 4;
     assert(typeField == MessageType.RESET);
+
+    // Ensure the token length is 2
+    ubyte tklField = firstByte & 15;
+    assert(tklField == token.length);
 
 }
