@@ -155,7 +155,11 @@ unittest
 
     packet.setMessageId(257);
 
+    // FIXME: Set options
 
+    ubyte[] payload = cast(ubyte[])[-1, -2];
+    writeln(payload.length);
+    packet.setPayload(payload);
 
 
 
@@ -197,5 +201,18 @@ unittest
     ubyte fifthByte = encoded[4], sixthByte = encoded[5];
     assert(fifthByte == 0);
     assert(sixthByte == 69);
+
+    // FIXME: Ensure options
+
+    // Ensure the payload marker is here
+    ubyte seventhByte = encoded[6];
+    ubyte payloadMarker = cast(ubyte)-1;
+    assert(seventhByte == payloadMarker);
+
+    // Ensure the payload is [255, 254]
+    // FIXME: Offset because of options later
+    ubyte eighthByte = encoded[7], ninthByte = encoded[8];
+    assert(eighthByte == 255);
+    assert(ninthByte == 254);
 
 }
