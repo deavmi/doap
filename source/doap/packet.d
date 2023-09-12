@@ -1,5 +1,6 @@
 module doap.packet;
 
+import doap.types : MessageType;
 import doap.codes : Code;
 
 /** 
@@ -7,7 +8,8 @@ import doap.codes : Code;
  */
 public class CoapPacket
 {
-    private ubyte ver, type;
+    private ubyte ver;
+    private MessageType type;
     private ubyte tokenLen;
     private Code code;
     private ushort mid;
@@ -40,11 +42,21 @@ public class CoapPacket
         return encoded;
     }
 
+    public void setType(MessageType type)
+    {
+        this.type = type;
+    }
+
     // public ubyte getVersion()
     // {
 
     // }
 
+}
+
+version(unittest)
+{
+    import std.stdio;
 }
 
 /**
@@ -58,6 +70,8 @@ public class CoapPacket
 unittest
 {
     CoapPacket packet = new CoapPacket();
+    packet.setType(MessageType.RESET);
+
     ubyte[] encoded = packet.getBytes();
 
     ubyte firstByte = encoded[0];
@@ -66,5 +80,11 @@ unittest
     ubyte versionField = cast(ubyte)(firstByte & 192) >> 6;
     assert(versionField == 1);
 
+    // Ensure the type is 3/RESET
+    writeln(firstByte);
+    ubyte typeField = cast(ubyte)(firstByte & 48) >> 4;
+    writeln(typeField);
+    writeln(cast(ubyte)MessageType.RESET);
+    assert(typeField == MessageType.RESET);
 
 }
