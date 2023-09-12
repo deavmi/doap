@@ -60,6 +60,14 @@ public class CoapPacket
         {
             encoded ~= token;
         }
+
+        // FIXME: Add options encoding
+
+        // Set the payload marker
+        encoded ~= cast(ubyte)-1;
+
+        // Set the payload
+        encoded ~= payload;
         
         return encoded;
     }
