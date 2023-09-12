@@ -112,6 +112,16 @@ public class CoapPacket
         this.mid = mid;
     }
 
+    public void setOptions()
+    {
+        // FIXME: Implement me
+    }
+
+    public void setPayload(ubyte[] payload)
+    {
+        this.payload = payload;
+    }
+
     // public ubyte getVersion()
     // {
 
