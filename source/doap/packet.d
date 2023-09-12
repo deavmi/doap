@@ -54,6 +54,12 @@ public class CoapPacket
             ubyte hiByte = *(basePtr);
             encoded ~= [hiByte, lowByte];
         }
+
+        // Set the token (if any)
+        if(tokenLen)
+        {
+            encoded ~= token;
+        }
         
         return encoded;
     }
@@ -168,5 +174,10 @@ unittest
     ubyte thirdByte = encoded[2], fourthByte = encoded[3];
     assert(thirdByte == 1);
     assert(fourthByte == 1);
+
+    // Ensure the token is [0, 69]
+    ubyte fifthByte = encoded[4], sixthByte = encoded[5];
+    assert(fifthByte == 0);
+    assert(sixthByte == 69);
 
 }
