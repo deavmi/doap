@@ -37,7 +37,7 @@ public class CoapPacket
         // Set the request/response code
         encoded ~= code;
 
-        // Set the message ID
+        // Set the message ID (encoded as big endian)
         version(LittleEndian)
         {
             ubyte* basePtr = cast(ubyte*)&mid;
@@ -129,6 +129,8 @@ unittest
 
     packet.setCode(Code.PONG);
 
+    packet.setMessageId(257);
+
 
 
 
@@ -161,5 +163,10 @@ unittest
     writeln(codeClass);
     writeln(code);
     assert(secondByte == Code.PONG);
+
+    // Ensure the message ID is 257
+    ubyte thirdByte = encoded[2], fourthByte = encoded[3];
+    assert(thirdByte == 1);
+    assert(fourthByte == 1);
 
 }
