@@ -38,8 +38,23 @@ public class CoapPacket
         encoded ~= code;
 
         // Set the message ID
-        
+        version(LittleEndian)
+        {
+            ubyte* basePtr = cast(ubyte*)&mid;
+            ubyte lowByte = *basePtr;
+            ubyte hiByte = *(basePtr+1);
 
+            encoded ~= [hiByte, lowByte];
+
+        }
+        else version(BigEndian)
+        {
+            ubyte* basePtr = cast(ubyte*)&mid;
+            ubyte lowByte = *(basePtr+1);
+            ubyte hiByte = *(basePtr);
+            encoded ~= [hiByte, lowByte];
+        }
+        
         return encoded;
     }
 
@@ -76,6 +91,11 @@ public class CoapPacket
     public void setCode(Code code)
     {
         this.code = code;
+    }
+
+    public void setMessageId(ushort mid)
+    {
+        this.mid = mid;
     }
 
     // public ubyte getVersion()
