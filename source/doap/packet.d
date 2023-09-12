@@ -81,10 +81,7 @@ unittest
     assert(versionField == 1);
 
     // Ensure the type is 3/RESET
-    writeln(firstByte);
     ubyte typeField = cast(ubyte)(firstByte & 48) >> 4;
-    writeln(typeField);
-    writeln(cast(ubyte)MessageType.RESET);
     assert(typeField == MessageType.RESET);
 
 }
