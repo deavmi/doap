@@ -142,13 +142,25 @@ public class CoapPacket
         return this.tokenLen;
     }
 
+    public Code getCode()
+    {
+        return this.code;
+    }
+
     public static CoapPacket fromBytes(ubyte[] data)
     {
         CoapPacket packet = new CoapPacket();
 
+        if(data.length < 4)
+        {
+            throw new CoapException("CoAP message must be at least 4 bytes in size");
+        }
+
         packet.ver = data[0]>>6;
         packet.type = cast(MessageType)( (data[0]>>4) & 3);
         packet.tokenLen = data[0]&15;
+
+        packet.code = cast(Code)(data[1]);
 
 
         return packet;
@@ -253,11 +265,13 @@ unittest
 unittest
 {
     // Version: 1 | Type: RESET (3) : TLK: 0
-    ubyte[] packetData = [112];
+    // Code: 2 (POST) | ...
+    ubyte[] packetData = [112, 2, 0, 0];
 
     CoapPacket packet = CoapPacket.fromBytes(packetData);
 
     assert(packet.getVersion() == 1);
     assert(packet.getType() == MessageType.RESET);
     assert(packet.getTokenLength() == 0);
+    assert(packet.getCode() == Code.POST);
 }
