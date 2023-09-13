@@ -127,10 +127,35 @@ public class CoapPacket
         this.payload = payload;
     }
 
-    // public ubyte getVersion()
-    // {
+    public ubyte getVersion()
+    {
+        return this.ver;
+    }
 
-    // }
+    public MessageType getType()
+    {
+        return this.type;
+    }
+
+    public ubyte getTokenLength()
+    {
+        return this.tokenLen;
+    }
+
+    import std.stdio;
+
+    public static CoapPacket fromBytes(ubyte[] data)
+    {
+        CoapPacket packet = new CoapPacket();
+
+        packet.ver = data[0]>>6;
+        packet.type = cast(MessageType)( (data[0]>>4) & 3);
+        writeln(packet.type);
+        packet.tokenLen = data[0]&15;
+
+
+        return packet;
+    }
 
 }
 
@@ -219,4 +244,23 @@ unittest
     assert(eighthByte == 255);
     assert(ninthByte == 254);
 
+}
+
+/**
+ * Decoding tests
+ *
+ * These tests take a byte array of an encoded
+ * CoAP packet and then decodes it into a new
+ * `CoapPacket` object
+ */
+unittest
+{
+    // Version: 1 | Type: RESET (3) : TLK: 0
+    ubyte[] packetData = [112];
+
+    CoapPacket packet = CoapPacket.fromBytes(packetData);
+
+    assert(packet.getVersion() == 1);
+    assert(packet.getType() == MessageType.RESET);
+    assert(packet.getTokenLength() == 0);
 }
