@@ -1,4 +1,4 @@
-module doap.types;
+module doap.protocol.types;
 
 public enum MessageType : ubyte
 {

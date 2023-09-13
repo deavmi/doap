@@ -1,6 +1,5 @@
 module doap;
 
-import doap.packet;
-import doap.codes;
-import doap.types;
-import doap.exceptions;
+public import doap.protocol;
+
+public import doap.exceptions;

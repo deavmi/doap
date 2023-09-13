@@ -1,8 +1,13 @@
-module doap.packet;
+module doap.protocol.packet;
 
-import doap.types : MessageType;
-import doap.codes : Code;
+import doap.protocol.types : MessageType;
+import doap.protocol.codes : Code;
 import doap.exceptions : CoapException;
+
+/** 
+ * Payload marker
+ */
+private ubyte PAYLOAD_MARKER = cast(ubyte)-1;
 
 /** 
  * Represents a CoAP packet
@@ -64,7 +69,7 @@ public class CoapPacket
         // FIXME: Add options encoding
 
         // Set the payload marker
-        encoded ~= cast(ubyte)-1;
+        encoded ~= PAYLOAD_MARKER;
 
         // Set the payload
         encoded ~= payload;
@@ -206,8 +211,7 @@ unittest
 
     // Ensure the payload marker is here
     ubyte seventhByte = encoded[6];
-    ubyte payloadMarker = cast(ubyte)-1;
-    assert(seventhByte == payloadMarker);
+    assert(seventhByte == PAYLOAD_MARKER);
 
     // Ensure the payload is [255, 254]
     // FIXME: Offset because of options later

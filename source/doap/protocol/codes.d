@@ -1,4 +1,4 @@
-module doap.codes;
+module doap.protocol.codes;
 
 public enum Code : ubyte
 {
