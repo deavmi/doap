@@ -142,15 +142,12 @@ public class CoapPacket
         return this.tokenLen;
     }
 
-    import std.stdio;
-
     public static CoapPacket fromBytes(ubyte[] data)
     {
         CoapPacket packet = new CoapPacket();
 
         packet.ver = data[0]>>6;
         packet.type = cast(MessageType)( (data[0]>>4) & 3);
-        writeln(packet.type);
         packet.tokenLen = data[0]&15;
 
 
