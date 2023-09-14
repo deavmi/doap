@@ -178,7 +178,10 @@ public class CoapPacket
             *(pMidBase+1) = *(midBase+1);
         }
 
-        
+        if(packet.tokenLen)
+        {
+            packet.token = data[4..4+packet.tokenLen];
+        }
 
 
         return packet;
