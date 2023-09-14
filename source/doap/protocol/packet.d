@@ -143,6 +143,11 @@ public class CoapPacket
         return this.tokenLen;
     }
 
+    public ubyte[] getToken()
+    {
+        return this.token;
+    }
+
     public Code getCode()
     {
         return this.code;
