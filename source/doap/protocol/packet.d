@@ -148,6 +148,11 @@ public class CoapPacket
         return this.code;
     }
 
+    public ushort getMessageId()
+    {
+        return this.mid;
+    }
+
     public static CoapPacket fromBytes(ubyte[] data)
     {
         CoapPacket packet = new CoapPacket();
@@ -297,8 +302,8 @@ unittest
 unittest
 {
     // Version: 1 | Type: RESET (3) : TLK: 0
-    // Code: 2 (POST) | ...
-    ubyte[] packetData = [112, 2, 0, 0];
+    // Code: 2 (POST) | MID: 257
+    ubyte[] packetData = [112, 2, 1, 1];
 
     CoapPacket packet = CoapPacket.fromBytes(packetData);
 
@@ -306,4 +311,6 @@ unittest
     assert(packet.getType() == MessageType.RESET);
     assert(packet.getTokenLength() == 0);
     assert(packet.getCode() == Code.POST);
+    // TODO: Add message ID check + token check
+    assert(packet.getMessageId() == 257);
 }
