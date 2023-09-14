@@ -61,6 +61,22 @@ public class CoapClient
     }
 
     /** 
+     * Constructs a new CoAP client to the
+     * provided endpoint address and port.
+     *
+     * This constructor provided name
+     * resolution on the host part.
+     *
+     * Params:
+     *   host = the CoAP host
+     *   port = the CoAP port
+     */
+    this(string host, ushort port)
+    {
+        this(new InternetAddress(host, port));
+    }
+
+    /** 
      * Sets up a new datagram socket,
      * sets the running status to `true`
      * and then starts the messaging
@@ -241,8 +257,7 @@ version(unittest)
  */
 unittest
 {
-    Address addr = new InternetAddress("coap.me", 5683);
-    CoapClient client = new CoapClient(addr);
+    CoapClient client = new CoapClient("coap.me", 5683);
 
     
     CoapRequestFuture future = client.newRequestBuilder().payload(cast(ubyte[])"Hello this is Tristan!")
