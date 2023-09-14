@@ -47,6 +47,104 @@ package class CoapRequest
     }
 }
 
+/** 
+ * This allows one to build up a new
+ * CoAP request of some form in a 
+ * method-call-by-method-call manner.
+ *
+ * In order to instantiate one of these
+ * please do so via the `CoapClient`.
+ */
+package class CoapRequestBuilder
+{
+    /** 
+     * The associated client for
+     * making the actual request
+     */
+    private CoapClient client;
+
+    /** 
+     * The request code
+     */
+    package Code requestCode;
+
+    /** 
+     * The payload
+     */
+    package ubyte[] pyld;
+
+    /** 
+     * The token
+     */
+    package ubyte[] tkn;
+
+    /** 
+     * Constructs a new builder
+     *
+     * This requires a working `CoapClient`
+     * such that finalization can be done
+     * on its side
+     *
+     * Params:
+     *   client = the client to associate with
+     */
+    this(CoapClient client)
+    {
+        this.client = client;
+        this.requestCode = Code.GET;
+    }
+
+    /** 
+     * Set the payload for this request
+     *
+     * Params:
+     *   payload = the payload
+     * Returns: this builder
+     */
+    public CoapRequestBuilder payload(ubyte[] payload)
+    {
+        this.pyld = payload;
+        return this;
+    }
+
+    /** 
+     * Set the token to use for this request
+     *
+     * Params:
+     *   tkn = the token
+     * Returns: this builder
+     */
+    public CoapRequestBuilder token(ubyte[] tkn)
+    {
+        if(tkn.length > 8)
+        {
+            throw new CoapException("The token cannot be more than 8 bytes");
+        }
+
+        this.tkn = tkn;
+        return this;
+    }
+
+    /** 
+     * Build the request, set it in flight
+     * and return the future handle to it.
+     *
+     * This sets the request code to POST.
+     *
+     * Returns: the `CoapRequestFuture` for
+     * this request
+     */
+    public CoapRequestFuture post()
+    {
+        // Set the request code to POST
+        this.requestCode = Code.POST;
+
+        // Register the request via the client
+        // ... and obtain the future
+        return this.client.doRequest(this);
+    }
+}
+
 import core.sync.mutex : Mutex;
 import core.sync.condition : Condition;
 
