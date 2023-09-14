@@ -143,6 +143,25 @@ package class CoapRequestBuilder
         // ... and obtain the future
         return this.client.doRequest(this);
     }
+
+    /** 
+     * Build the request, set it in flight
+     * and return the future handle to it.
+     *
+     * This sets the request code to GET.
+     *
+     * Returns: the `CoapRequestFuture` for
+     * this request
+     */
+    public CoapRequestFuture get()
+    {
+        // Set the request code to GET
+        this.requestCode = Code.GET;
+
+        // Register the request via the client
+        // ... and obtain the future
+        return this.client.doRequest(this);
+    }
 }
 
 import core.sync.mutex : Mutex;
