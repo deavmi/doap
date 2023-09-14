@@ -3,6 +3,7 @@ module doap.protocol.packet;
 import doap.protocol.types : MessageType;
 import doap.protocol.codes : Code;
 import doap.exceptions : CoapException;
+import std.conv : to;
 
 /** 
  * Payload marker
@@ -163,7 +164,35 @@ public class CoapPacket
         packet.code = cast(Code)(data[1]);
 
 
+        ubyte* midBase = data[2..4].ptr;
+        version(LittleEndian)
+        {
+            ubyte* pMidBase = cast(ubyte*)&packet.mid;
+            *(pMidBase) = *(midBase+1);
+            *(pMidBase+1) = *(midBase);
+        }
+        else version(BigEndian)
+        {
+            ubyte* pMidBase = cast(ubyte*)&packet.mid;
+            *(pMidBase) = *(midBase);
+            *(pMidBase+1) = *(midBase+1);
+        }
+
+        
+
+
         return packet;
+    }
+
+    public override string toString()
+    {
+        return "CoapPacket [ver: "~to!(string)(ver)~
+                            ", type: "~to!(string)(type)~
+                            ", tkl: "~to!(string)(tokenLen)~
+                            ", code: "~to!(string)(code)~
+                            ", mid: "~to!(string)(mid)~
+                            ", token: "~to!(string)(token)~
+                            "]";
     }
 
 }
