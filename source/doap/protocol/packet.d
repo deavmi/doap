@@ -314,6 +314,9 @@ public class CoapPacket
 
         ulong idx = 4+packet.tokenLen;
 
+        writeln();
+        writeln();
+
         CoapOption[] createdOptions;
         if(remainder.length)
         {
@@ -331,6 +334,8 @@ public class CoapPacket
                 scope(exit)
                 {
                     writeln("Currently built options: ", createdOptions);
+                    writeln();
+                    writeln();
                 }
 
                 ubyte curValue = data[idx];
