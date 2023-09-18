@@ -260,7 +260,8 @@ unittest
     CoapClient client = new CoapClient("coap.me", 5683);
 
     
-    CoapRequestFuture future = client.newRequestBuilder().payload(cast(ubyte[])"Hello this is Tristan!")
+    CoapRequestFuture future = client.newRequestBuilder()
+                              .payload(cast(ubyte[])"Hello this is Tristan!")
                               .token([69])
                               .post();
 
