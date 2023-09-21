@@ -330,6 +330,7 @@ public class CoapPacket
             while(true)
             {
                 writeln("Delta (ENTER): ", delta);
+                writeln("Remainder [from-idx..$] (ENTER): ", data[idx..$]);
 
                 scope(exit)
                 {
@@ -442,10 +443,50 @@ public class CoapPacket
                     ushort unProcessedValue = *(cast(ushort*)optionIdBytes.ptr);
                     ushort optionId = order(unProcessedValue, Order.BE);
 
+                    // The value found is then lacking 269 (so add it back)
+                    optionId+=269;
+
+                    // Then tack on the delta
+                    optionId+=delta;
+                    // TODO: What to do about delta?
+
+                    // Jump over [Option delta extended (16bit)] here
+                    idx+=2;
 
                     writeln("16 bit option-id delta: ", optionId);
+
+                    // Get the option length type
+                    OptionLenType optLenType = getOptionLenType(curValue);
+                    writeln("Option len type: ", optLenType);
+
+                    // 0 to 12 length type
+                    if(optLenType == OptionLenType.ZERO_TO_TWELVE)
+                    {
+                        // Option length
+                        ubyte optLen = (curValue&15);
+                        writeln("Option len: ", optLen);
+
+                        // Read the option now
+                        ubyte[] optionValue = data[idx..idx+optLen];
+
+                        // Jump over the option value
+                        idx+=optLen;
+
+                        // Create the option and add it to the list of options
+                        CoapOption option;
+                        option.value = optionValue;
+                        option.id = optionId;
+                        writeln("Built option: ", option);
+                        createdOptions ~= option;
+                    }
+
+
+
+                    
                     
                     // Move onto the first byte of the next two (16 bit BE option-length extended)
+
+                    writeln("Support not yet finished for delta type 14");
 
                     break;
                 }
