@@ -382,6 +382,9 @@ public class CoapPacket
                         ubyte[] optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
 
+                        // Jump over the option value
+                        idx+=optLen;
+
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
