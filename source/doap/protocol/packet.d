@@ -448,7 +448,9 @@ public class CoapPacket
 
                     // Then tack on the delta
                     optionId+=delta;
-                    // TODO: What to do about delta?
+
+                    // TODO: What to do about delta? I think we should make it the new delta
+                    delta=optionId;
 
                     // Jump over [Option delta extended (16bit)] here
                     idx+=2;
@@ -488,7 +490,7 @@ public class CoapPacket
 
                     writeln("Support not yet finished for delta type 14");
 
-                    break;
+                    // break;
                 }
                 // 15
                 else if(computed == 15)
