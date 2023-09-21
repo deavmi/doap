@@ -4,105 +4,12 @@ import doap.protocol.types : MessageType;
 import doap.protocol.codes : Code;
 import doap.exceptions : CoapException;
 import std.conv : to;
+import doap.protocol.utils : order, Order;
 
 /** 
  * Payload marker
  */
 private ubyte PAYLOAD_MARKER = cast(ubyte)-1;
-
-
-/** 
- * Flips the given integral value
- *
- * Params:
- *   bytesIn = the integral value
- * Returns: the flipped integral
- */
-public T flip(T)(T bytesIn) if(__traits(isIntegral, T))
-{
-    T copy = bytesIn;
-
-    ubyte* base = (cast(ubyte*)&bytesIn)+T.sizeof-1;
-    ubyte* baseCopy = cast(ubyte*)&copy;
-
-    for(ulong idx = 0; idx < T.sizeof; idx++)
-    {
-        *(baseCopy+idx) = *(base-idx);
-    }
-
-    return copy;
-}
-
-/** 
- * Ordering
- */
-private enum Order
-{
-    /**
-     * Little endian
-     */
-    LE,
-
-    /**
-     * Big endian
-     */
-    BE
-}
-
-/** 
- * Swaps the bytes to the given ordering but does a no-op
- * if the ordering requested is the same as that of the 
- * system's
- *
- * Params:
- *   bytesIn = the integral value to swap
- *   order = the byte ordering to request
- * Returns: the integral value
- */
-public T order(T)(T bytesIn, Order order) if(__traits(isIntegral, T))
-{
-    version(LittleEndian)
-    {
-        if(order == Order.LE)
-        {
-            return bytesIn;
-        }
-        else
-        {
-            return flip(bytesIn);
-        }
-    }
-    else version(BigEndian)
-    {
-        if(order == Order.BE)
-        {
-            return bytesIn;
-        }
-        else
-        {
-            return flip(bytesIn);
-        }
-    }
-}
-
-
-
-unittest
-{
-    version(LittleEndian)
-    {
-        ushort i = 1;
-        writeln("Pre-order: ", i);
-        ushort ordered = order(i, Order.BE);
-        writeln("Post-order: ", ordered);
-        assert(ordered == 256);
-    }
-    else version(BigEndian)
-    {
-        // TODO: Add this AND CI tests for it
-    }
-   
-}
 
 /** 
  * A header option
