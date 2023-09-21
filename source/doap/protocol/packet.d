@@ -481,6 +481,11 @@ public class CoapPacket
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
+                    else
+                    {
+                        writeln("OptionDelta14 Mode: We don't yet support other option lengths in this mode");
+                        assert(false);
+                    }
 
 
 
