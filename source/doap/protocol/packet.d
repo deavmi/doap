@@ -441,16 +441,16 @@ public class CoapPacket
                     // Delta value is 2 bytes (BE)
                     ubyte[] optionIdBytes = data[idx..idx+2];
                     ushort unProcessedValue = *(cast(ushort*)optionIdBytes.ptr);
-                    ushort optionId = order(unProcessedValue, Order.BE);
 
                     // The value found is then lacking 269 (so add it back)
-                    optionId+=269;
+                    ushort deltaAddition = order(unProcessedValue, Order.BE);
+                    deltaAddition+=269;
 
-                    // Then tack on the delta
-                    optionId+=delta;
+                    // Update delta
+                    delta+=deltaAddition;
 
-                    // TODO: What to do about delta? I think we should make it the new delta
-                    delta=optionId;
+                    // Our option ID is then calculated from the current delta
+                    ushort optionId = delta;
 
                     // Jump over [Option delta extended (16bit)] here
                     idx+=2;
