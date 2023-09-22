@@ -66,6 +66,11 @@ class CoapMessagingLayer : Thread
         return this.client.address;
     }
 
+    /** 
+     * Starts the messaging layer by starting
+     * the underlying transport and then the
+     * reader loop
+     */
     public void begin() // Candidate for Interface
     {
         // TODO: Handle socket errors nicely?
@@ -84,6 +89,13 @@ class CoapMessagingLayer : Thread
         this.start();
     }
 
+    /** 
+     * Transmit the provided packet
+     *
+     * Params:
+     *   packet = the `CoapPacket`
+     * to transmit
+     */
     public void send(CoapPacket packet) // Candidate for Interface
     {
         // Encode the packet and send the bytes
@@ -91,6 +103,15 @@ class CoapMessagingLayer : Thread
         this.socket.send(encodedPacket);
     }
 
+    /** 
+     * Stops the messaging layer by
+     * stopping the underlying network
+     * transport and therefore the
+     * reading loop
+     *
+     * Blocks till the reading loop
+     * has terminated
+     */
     public void close() // Candidate for Interface
     {
         // Set status to not running
