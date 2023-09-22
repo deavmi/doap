@@ -15,6 +15,8 @@ import std.socket : Address;
 
 import std.socket : Socket, Address, SocketType, ProtocolType, getAddress, parseAddress, InternetAddress, SocketShutdown;
 
+import doap.client.mesglayer : CoapMessagingLayerFR;
+
 // TODO: Generalize this and then make
 // ... a UDP version of it
 
@@ -25,13 +27,8 @@ import std.socket : Socket, Address, SocketType, ProtocolType, getAddress, parse
  * Handles the actual sending and receiving
  * of datagrams and fulfilling of requests
  */
-class CoapMessagingLayer
+public class CoapMessagingLayer : CoapMessagingLayerFR
 {
-    /** 
-     * The client
-     */
-    private CoapClient client;
-
     /** 
      * Reading-loop thread
      */
@@ -56,18 +53,7 @@ class CoapMessagingLayer
      */
     this(CoapClient client)
     {
-        this.client = client;
-    }
-
-    /** 
-     * Retrieves the CoAP endpoint the client is
-     * connected to
-     *
-     * Returns: the endpoint address
-     */
-    protected final Address getEndpointAddress() // Final in Interface
-    {
-        return this.client.address;
+        super(client);
     }
 
     /** 
@@ -75,7 +61,7 @@ class CoapMessagingLayer
      * the underlying transport and then the
      * reader loop
      */
-    public void begin() // Candidate for Interface
+    public override void begin() // Candidate for Interface
     {
         // TODO: Handle socket errors nicely?
 
@@ -100,7 +86,7 @@ class CoapMessagingLayer
      *   packet = the `CoapPacket`
      * to transmit
      */
-    public void send(CoapPacket packet) // Candidate for Interface
+    public override void send(CoapPacket packet) // Candidate for Interface
     {
         // Encode the packet and send the bytes
         ubyte[] encodedPacket = packet.getBytes();
@@ -116,7 +102,7 @@ class CoapMessagingLayer
      * Blocks till the reading loop
      * has terminated
      */
-    public void close() // Candidate for Interface
+    public override void close() // Candidate for Interface
     {
         // Set status to not running
         this.running = false;
@@ -217,7 +203,7 @@ class CoapMessagingLayer
      */
     private void handlePacket(CoapPacket packet)
     {
-        CoapRequest request = this.client.yankRequest(packet.getToken());
+        CoapRequest request = getClient().yankRequest(packet.getToken());
         if(request)
         {
             writeln("Matched response '"~packet.toString()~"' to request '"~request.toString()~"'");

@@ -2,6 +2,7 @@ module doap.client.client;
 
 import std.socket : Socket, Address, SocketType, ProtocolType, getAddress, parseAddress, InternetAddress, SocketShutdown;
 import doap.client.messaging : CoapMessagingLayer;
+import doap.client.mesglayer : CoapMessagingLayerFR;
 import doap.protocol;
 import doap.client.request : CoapRequestBuilder, CoapRequest, CoapRequestFuture;
 import core.sync.mutex : Mutex;
@@ -28,7 +29,7 @@ public class CoapClient
      * The messaging layer which provides
      * request-response message match-ups
      */
-    private CoapMessagingLayer messaging;
+    private CoapMessagingLayerFR messaging;
 
     /** 
      * The request-response match list
@@ -55,7 +56,7 @@ public class CoapClient
     this(Address address)
     {
         this.address = address;
-        this.messaging = new CoapMessagingLayer(this);
+        this.messaging = new CoapMessagingLayer(this); //UDP transport
 
         this.requestsLock = new Mutex();
         this.watcherSignal = new Condition(this.requestsLock);
