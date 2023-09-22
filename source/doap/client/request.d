@@ -289,7 +289,7 @@ public class CoapRequestFuture
         this.response = response;
 
         // Wake up the sleepers
-        this.condition.notify();
+        this.condition.notifyAll();
     }
 
     /** 
