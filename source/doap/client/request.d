@@ -340,4 +340,25 @@ public class CoapRequestFuture
         return this.response;
     }
 
+    public CoapPacket get(Duration timeout)
+    {
+        // We can only wait on a condition if we
+        // ... first have a-hold of the lock
+        this.mutex.lock();
+
+        // Await a response
+        if(this.condition.wait(timeout))
+        {
+            // Upon waking up release lock
+            this.mutex.unlock();
+
+            return this.response;
+        }
+        else
+        {
+            // TODO: Make this a specific exception so the user can easily check for it
+            // ... (see feature/cancellable_future for how this would need to be update)
+            throw new CoapException("Timed out whilst waiting");
+        }
+    }
 }
