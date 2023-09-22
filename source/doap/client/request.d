@@ -3,6 +3,8 @@ module doap.client.request;
 import doap.client.client : CoapClient;
 import doap.protocol;
 import doap.exceptions;
+import core.time : Duration;
+import std.datetime.stopwatch : StopWatch, AutoStart;
 
 /**
  * Represents a request that has been made. This is
@@ -32,6 +34,11 @@ package class CoapRequest
      */
     package CoapRequestFuture future;
 
+    /**
+     * Stopwatch for counting elapsed time
+     */
+    private StopWatch timer;
+
     /** 
      * Constructs a new request
      *
@@ -44,6 +51,7 @@ package class CoapRequest
     {
         this.requestPacket = requestPacket;
         this.future = future;
+        this.timer = StopWatch(AutoStart.no);
     }
 
     public CoapPacket getRequestPacket()
@@ -54,6 +62,28 @@ package class CoapRequest
     public ubyte[] getToken()
     {
         return this.requestPacket.getToken();
+    }
+
+    /** 
+     * Starts the timer
+     */
+    package void startTime()
+    {
+        timer.start();
+    }
+
+    /** 
+     * Gets the current elapsed time and
+     * then resets it
+     *
+     * Returns: the elapsed time
+     */
+    package Duration getAndReset()
+    {
+        // Get the value and restart timer
+        Duration elapsed = timer.peek();
+        timer.reset();
+        return elapsed;
     }
 }
 

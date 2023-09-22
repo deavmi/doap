@@ -5,7 +5,9 @@ import doap.client.messaging : CoapMessagingLayer;
 import doap.protocol;
 import doap.client.request : CoapRequestBuilder, CoapRequest, CoapRequestFuture;
 import core.sync.mutex : Mutex;
+import core.sync.condition : Condition;
 import std.container.slist : SList;
+import core.thread : dur, Duration, Thread;
 
 /** 
  * A CoAP client
@@ -44,6 +46,11 @@ public class CoapClient
     private Mutex requestsLock;
 
     /** 
+     * Condition variable for watcher signalling
+     */
+    private Condition watcherSignal;
+
+    /** 
      * Creates a new CoAP client to the
      * provided endpoint address
      *
@@ -56,6 +63,7 @@ public class CoapClient
         this.messaging = new CoapMessagingLayer(this);
 
         this.requestsLock = new Mutex();
+        this.watcherSignal = new Condition(this.requestsLock);
 
         init();
     }
@@ -91,6 +99,8 @@ public class CoapClient
 
         // Set status to running
         this.running = true;
+
+
 
         // Start the messaging layer
         this.messaging.start();
@@ -156,8 +166,8 @@ public class CoapClient
         // Store the request
         storeRequest(request);
 
-        // Send
-        this.socket.send(requestPacket.getBytes());
+        // Transmit the request
+        transmitRequest(request);
 
         return future;
     }
@@ -204,6 +214,54 @@ public class CoapClient
         requestsLock.unlock();
 
         return foundRequest;
+    }
+
+    /** 
+     * Transmits the given request's associated
+     * packet to the underlying transport
+     *
+     * Params:
+     *   request = the `CoapRequest` to put into
+     * flight
+     */
+    private void transmitRequest(CoapRequest request)
+    {
+        // Encode the request packet and send it
+        this.socket.send(request.getRequestPacket().getBytes());
+
+        // Now start ticking the timer
+        request.startTime();
+    }
+
+    // private Duration sweepInterval;
+    private Duration retransmitTimeout;
+
+    private void watch()
+    {
+        while(true)
+        {
+            // TODO: Sleep on a 
+
+            /**
+             * Acquire the requests lock so we
+             * can sleep on the condition
+             * (temporarily unlock mutex)
+             */
+            // requestsLock.lock();
+            // watcherSignal.wait();
+
+            requestsLock.lock();
+            foreach(CoapRequest curReq; outgoingRequests)
+            {
+                if(curReq.getAndReset() >= retransmitTimeout)
+                {
+                    // TODO: Retransmit
+                }
+            }
+            requestsLock.unlock();
+
+            Thread.sleep(retransmitTimeout);
+        }
     }
 }
 
