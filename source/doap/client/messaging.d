@@ -134,7 +134,7 @@ class CoapMessagingLayer : Thread
     private void loop()
     {
         // TODO: Ensure below condition works well
-        while(this.client.running)
+        while(this.running)
         {
             writeln("h");
 
