@@ -26,6 +26,8 @@ public class CoapClient
 
     /** 
      * The datagram socket
+     *
+     * TODO: Move this into the messaging layer
      */
     package Socket socket;
 
