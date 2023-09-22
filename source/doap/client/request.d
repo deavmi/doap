@@ -96,6 +96,17 @@ package class CoapRequest
             return false;
         }
     }
+
+    /** 
+     * Returns the elapsed time of this request
+     * thus far
+     *
+     * Returns: the elapsed time
+     */
+    public Duration getElapsedTime()
+    {
+        return timer.peek();
+    }
 }
 
 /** 
