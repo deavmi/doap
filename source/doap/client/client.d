@@ -236,32 +236,28 @@ public class CoapClient
     // private Duration sweepInterval;
     private Duration retransmitTimeout;
 
-    private void watch()
+    /** 
+     * The intention of this method is that
+     * some kind-of `CoapMessagingLayer`
+     * can call this when it has no new
+     * messages to process.
+     *
+     * This then let's the client handle
+     * the checking of potentially timed
+     * out requests, and the re-issueing
+     * of them to the messaging layer.
+     */
+    package void onNoNewMessages()
     {
-        while(true)
+        requestsLock.lock();
+        foreach(CoapRequest curReq; outgoingRequests)
         {
-            // TODO: Sleep on a 
-
-            /**
-             * Acquire the requests lock so we
-             * can sleep on the condition
-             * (temporarily unlock mutex)
-             */
-            // requestsLock.lock();
-            // watcherSignal.wait();
-
-            requestsLock.lock();
-            foreach(CoapRequest curReq; outgoingRequests)
+            if(curReq.hasTimedOut(retransmitTimeout))
             {
-                if(curReq.hasTimedOut(retransmitTimeout))
-                {
-                    // TODO: Retransmit
-                }
+                // TODO: Retransmit
             }
-            requestsLock.unlock();
-
-            Thread.sleep(retransmitTimeout);
         }
+        requestsLock.unlock();
     }
 }
 
