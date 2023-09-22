@@ -17,19 +17,12 @@ public class CoapClient
     /** 
      * CoAP server endpoint
      */
-    private Address address;
+    package Address address;
 
     /** 
      * Running status
      */
     package bool running;
-
-    /** 
-     * The datagram socket
-     *
-     * TODO: Move this into the messaging layer
-     */
-    package Socket socket;
 
     /** 
      * The messaging layer which provides
@@ -94,18 +87,11 @@ public class CoapClient
      */
     private void init()
     {
-        // TODO: IF connect fails then don't start messaging
-        this.socket = new Socket(this.address.addressFamily(), SocketType.DGRAM, ProtocolType.UDP);
-        // this.socket.blocking(true);
-        this.socket.connect(address);
-
         // Set status to running
         this.running = true;
 
-
-
         // Start the messaging layer
-        this.messaging.start();
+        this.messaging.begin();
     }
 
     /** 
@@ -121,11 +107,8 @@ public class CoapClient
         // Set status to not running
         this.running = false;
 
-        // Shutdown the socket (stopping the messaging layer)
-        this.socket.shutdown(SocketShutdown.BOTH);
-
-        // Unbind (disallow incoming datagrams to source port (from device))
-        this.socket.close();
+        // Shutdown the messaging layer
+        this.messaging.close();
         
         // TODO: We must wake up other sleeprs with an error
         // (somehow, pass it in, flag set)
@@ -229,7 +212,7 @@ public class CoapClient
     private void transmitRequest(CoapRequest request)
     {
         // Encode the request packet and send it
-        this.socket.send(request.getRequestPacket().getBytes());
+        this.messaging.send(request.getRequestPacket());
 
         // Now start ticking the timer
         request.startTime();

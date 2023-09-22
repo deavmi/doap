@@ -11,6 +11,9 @@ import doap.client.request : CoapRequest;
 import std.stdio;
 
 import std.socket : Socket, SocketSet;
+import std.socket : Address;
+
+import std.socket : Socket, Address, SocketType, ProtocolType, getAddress, parseAddress, InternetAddress, SocketShutdown;
 
 // TODO: Generalize this and then make
 // ... a UDP version of it
@@ -30,6 +33,16 @@ class CoapMessagingLayer : Thread
     private CoapClient client;
 
     /** 
+     * Running status
+     */
+    private bool running; // TODO: Check volatility
+
+    /** 
+     * The datagram socket
+     */
+    private Socket socket;
+
+    /** 
      * Constructs a new messaging layer instance
      * associated with the provided client
      *
@@ -40,6 +53,78 @@ class CoapMessagingLayer : Thread
     {
         super(&loop);
         this.client = client;
+    }
+
+    /** 
+     * Retrieves the CoAP endpoint the client is
+     * connected to
+     *
+     * Returns: the endpoint address
+     */
+    protected final Address getEndpointAddress() // Final in Interface
+    {
+        return this.client.address;
+    }
+
+    /** 
+     * Starts the messaging layer by starting
+     * the underlying transport and then the
+     * reader loop
+     */
+    public void begin() // Candidate for Interface
+    {
+        // TODO: Handle socket errors nicely?
+
+        // Set status to running
+        this.running = true;
+
+
+        // TODO: IF connect fails then don't start messaging
+        this.socket = new Socket(getEndpointAddress().addressFamily(), SocketType.DGRAM, ProtocolType.UDP);
+        // this.socket.blocking(true);
+        this.socket.connect(getEndpointAddress());
+
+
+        // Start the thread (TODO: In future hide threading)
+        this.start();
+    }
+
+    /** 
+     * Transmit the provided packet
+     *
+     * Params:
+     *   packet = the `CoapPacket`
+     * to transmit
+     */
+    public void send(CoapPacket packet) // Candidate for Interface
+    {
+        // Encode the packet and send the bytes
+        ubyte[] encodedPacket = packet.getBytes();
+        this.socket.send(encodedPacket);
+    }
+
+    /** 
+     * Stops the messaging layer by
+     * stopping the underlying network
+     * transport and therefore the
+     * reading loop
+     *
+     * Blocks till the reading loop
+     * has terminated
+     */
+    public void close() // Candidate for Interface
+    {
+        // Set status to not running
+        this.running = false;
+
+        // Shutdown the socket (stopping the messaging layer)
+        this.socket.shutdown(SocketShutdown.BOTH);
+
+        // Unbind (disallow incoming datagrams to source port (from device))
+        this.socket.close();
+
+        // Wait till the reading-loop thread exits
+        this.join();
     }
 
     /** 
@@ -89,13 +174,13 @@ class CoapMessagingLayer : Thread
             SocketFlags flags = cast(SocketFlags)(SocketFlags.PEEK | MSG_TRUNC);
             byte[] data;
             data.length = 1; // At least one else never does underlying recv()
-            ptrdiff_t dgramSize = client.socket.receive(data, flags);
+            ptrdiff_t dgramSize = this.socket.receive(data, flags);
             
             // If we have received something then dequeue it of the peeked length
             if(dgramSize > 0)
             {
                 data.length = dgramSize;
-                client.socket.receive(data);
+                this.socket.receive(data);
                 writeln("received size: ", dgramSize);
                 writeln("received bytes: ", data);
 
