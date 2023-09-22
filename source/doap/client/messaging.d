@@ -35,7 +35,7 @@ class CoapMessagingLayer : Thread
     /** 
      * Running status
      */
-    private bool running;
+    private bool running; // TODO: Check volatility
 
     /** 
      * The datagram socket
