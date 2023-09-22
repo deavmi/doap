@@ -258,10 +258,25 @@ import core.sync.mutex : Mutex;
 import core.sync.condition : Condition;
 
 
-private enum RequestState
+/** 
+ * The state of a `CoapRequestFuture`
+ */
+public enum RequestState
 {
+    /** 
+     * The future has been created
+     */
     CREATED,
+
+    /** 
+     * The future has completed
+     * successfully
+     */
     COMPLETED,
+
+    /** 
+     * The future was cancelled
+     */
     CANCELLED
 }
 
