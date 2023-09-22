@@ -10,6 +10,7 @@ import doap.client.request : CoapRequest;
 
 import std.stdio;
 
+import std.socket : Socket, SocketSet;
 
 // TODO: Generalize this and then make
 // ... a UDP version of it
@@ -66,6 +67,18 @@ class CoapMessagingLayer : Thread
              * for a CoapRequest and should loop back to the top
              * to call `onNoNewMessages()`
              */
+            // SocketSet readSet = new SocketSet();
+            // readSet.add(this.client.socket);
+            // Socket.select(readSet, null, null);
+
+            // If there is NOT data available
+            // if(!readSet.isSet(this.client.socket))
+            // {
+                // writeln("No data available");
+
+                // TODO: Implement me
+            // }
+            
 
 
 
