@@ -288,6 +288,16 @@ public class CoapRequestFuture
         // Set the received response
         this.response = response;
 
+        // TODO: Set state as DONE
+
+        // Wake up the sleepers
+        this.condition.notify();
+    }
+
+    package void cancel()
+    {
+        // TODO: Set state as cancelled
+
         // Wake up the sleepers
         this.condition.notify();
     }
