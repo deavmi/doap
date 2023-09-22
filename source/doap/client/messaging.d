@@ -10,6 +10,10 @@ import doap.client.request : CoapRequest;
 
 import std.stdio;
 
+
+// TODO: Generalize this and then make
+// ... a UDP version of it
+
 /**
  * Stateful management of responses for
  * previously made requests.
@@ -47,7 +51,24 @@ class CoapMessagingLayer : Thread
         while(this.client.running)
         {
             writeln("h");
+
+
             // TODO: Add select here, if readbale THEN do the below
+            /** 
+             * TODO: Add a call to select(), if NOTHING is available
+             * then call the client's `onNoNewMessages()`.
+             *
+             * After this do a timed `receive()` below (this is where
+             * the thread gets some rest by doing a timed I/O wait).
+             *
+             * Recall, however, we don't want to wait forever, as
+             * we may now have elapsed over a request time-out
+             * for a CoapRequest and should loop back to the top
+             * to call `onNoNewMessages()`
+             */
+
+
+
 
             // TODO: Check if socket is readable, if not,
             // ... check timers on outstanding messages
