@@ -43,7 +43,13 @@ class CoapMessagingLayer : Thread
         this.client = client;
     }
 
-    public final Address getEndpointAddress()
+    /** 
+     * Retrieves the CoAP endpoint the client is
+     * connected to
+     *
+     * Returns: the endpoint address
+     */
+    protected final Address getEndpointAddress()
     {
         return this.client.address;
     }
