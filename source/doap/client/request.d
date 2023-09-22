@@ -306,7 +306,7 @@ public class CoapRequestFuture
         this.state = RequestState.COMPLETED;
 
         // Wake up the sleepers
-        this.condition.notify();
+        this.condition.notifyAll();
     }
 
     /** 
