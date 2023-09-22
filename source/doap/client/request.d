@@ -229,6 +229,14 @@ package class CoapRequestBuilder
 import core.sync.mutex : Mutex;
 import core.sync.condition : Condition;
 
+
+private enum RequestState
+{
+    CREATED,
+    COMPLETED,
+    CANCELLED
+}
+
 /** 
  * This is returned to the user when he
  * does a finalizing call on a `CoapRequestBuilder`
@@ -249,7 +257,12 @@ public class CoapRequestFuture
      * This is filled in by the
      * messaging layer.
      */
-    private CoapPacket response;
+    private CoapPacket response; // TODO: Volatility?
+
+    /** 
+     * State of the future
+     */
+    private RequestState state; // TODO: Volatility?
 
     /** 
      * Mutex (for the condition to use)
@@ -270,6 +283,7 @@ public class CoapRequestFuture
      */
     package this()
     {
+        this.state = RequestState.CREATED;
         this.mutex = new Mutex();
         this.condition = new Condition(mutex);
     }
@@ -288,15 +302,22 @@ public class CoapRequestFuture
         // Set the received response
         this.response = response;
 
-        // TODO: Set state as DONE
+        // Set completion state
+        this.state = RequestState.COMPLETED;
 
         // Wake up the sleepers
         this.condition.notify();
     }
 
+    /** 
+     * Cancels this future such that
+     * all calls to `get()` will
+     * unblock and throw an exception
+     */
     package void cancel()
     {
-        // TODO: Set state as cancelled
+        // Set cancelled state
+        this.state = RequestState.CANCELLED;
 
         // Wake up the sleepers
         this.condition.notifyAll();
@@ -306,6 +327,8 @@ public class CoapRequestFuture
      * Blocks until the response is received
      *
      * Returns: the response as a `CoapPacket`
+     * Throws:
+     *     CoapException on cancelled request
      */
     public CoapPacket get()
     {
@@ -319,7 +342,18 @@ public class CoapRequestFuture
         // Upon waking up release lock
         this.mutex.unlock();
 
-        return this.response;
+        // If successfully completed
+        if(this.state == RequestState.COMPLETED)
+        {
+            return this.response;
+        }
+        // On error
+        else
+        {
+            throw new CoapException("Request future cancelled");
+        }
+
+        
     }
 
 }
