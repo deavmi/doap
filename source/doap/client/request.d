@@ -299,7 +299,7 @@ public class CoapRequestFuture
         // TODO: Set state as cancelled
 
         // Wake up the sleepers
-        this.condition.notify();
+        this.condition.notifyAll();
     }
 
     /** 
