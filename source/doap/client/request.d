@@ -394,9 +394,16 @@ public class CoapRequestFuture
         else
         {
             throw new CoapException("Request future cancelled");
-        }
-
-        
+        }   
     }
 
+    /** 
+     * Returns the state of this future
+     *
+     * Returns: the state
+     */
+    public RequestState getState()
+    {
+        return this.state;
+    }
 }
