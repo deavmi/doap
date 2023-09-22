@@ -98,6 +98,7 @@ class CoapMessagingLayer : Thread
         if(request)
         {
             writeln("Matched response '"~packet.toString()~"' to request '"~request.toString()~"'");
+            writeln("Elapsed time: ", request.getElapsedTime());
 
             // Fulfill the request with the received data and wake up sleepers
             request.future.receiveWake(packet);
