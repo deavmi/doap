@@ -151,7 +151,7 @@ public class CoapClient
         CoapRequestFuture future = new CoapRequestFuture();
 
         // Link the CoapRequest to the future so it can be signalled
-        CoapRequest request = new CoapRequest(requestPacket.getToken(), future);
+        CoapRequest request = new CoapRequest(requestPacket, future);
 
         // Store the request
         storeRequest(request);
@@ -194,7 +194,7 @@ public class CoapClient
 
         foreach(CoapRequest request; outgoingRequests)
         {
-            if(request.token == token)
+            if(request.getToken() == token)
             {
                 foundRequest = request;
                 break;

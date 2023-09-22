@@ -21,10 +21,10 @@ import doap.exceptions;
 package class CoapRequest
 {
     /** 
-     * The token to be able to match a response
-     * to
+     * The original packet (to be able to access the token
+     * such that we can match it up with a respnse)
      */
-    package ubyte[] token;
+    private CoapPacket requestPacket;
 
     /** 
      * The future which we can fill up with the
@@ -36,14 +36,24 @@ package class CoapRequest
      * Constructs a new request
      *
      * Params:
-     *   token = the token
+     *   requestPacket = the actual request
      *   future = the `CoapRequestFuture` to wake up
      * on data arrival
      */
-    this(ubyte[] token, CoapRequestFuture future)
+    this(CoapPacket requestPacket, CoapRequestFuture future)
     {
-        this.token = token;
+        this.requestPacket = requestPacket;
         this.future = future;
+    }
+
+    public CoapPacket getRequestPacket()
+    {
+        return this.requestPacket;
+    }
+
+    public ubyte[] getToken()
+    {
+        return this.requestPacket.getToken();
     }
 }
 
