@@ -17,7 +17,7 @@ public class CoapClient
     /** 
      * CoAP server endpoint
      */
-    private Address address;
+    package Address address;
 
     /** 
      * Running status

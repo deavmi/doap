@@ -11,6 +11,7 @@ import doap.client.request : CoapRequest;
 import std.stdio;
 
 import std.socket : Socket, SocketSet;
+import std.socket : Address;
 
 // TODO: Generalize this and then make
 // ... a UDP version of it
@@ -40,6 +41,11 @@ class CoapMessagingLayer : Thread
     {
         super(&loop);
         this.client = client;
+    }
+
+    public final Address getEndpointAddress()
+    {
+        return this.client.address;
     }
 
     /** 
