@@ -131,6 +131,11 @@ package class CoapRequestBuilder
     package Code requestCode;
 
     /** 
+     * The message type
+     */
+    package MessageType type;
+
+    /** 
      * The payload
      */
     package ubyte[] pyld;
@@ -154,6 +159,7 @@ package class CoapRequestBuilder
     {
         this.client = client;
         this.requestCode = Code.GET;
+        this.type = MessageType.CONFIRMABLE;
     }
 
     /** 
@@ -184,6 +190,28 @@ package class CoapRequestBuilder
         }
 
         this.tkn = tkn;
+        return this;
+    }
+
+    /** 
+     * Sets this message as confirmable
+     *
+     * Returns: this builder
+     */
+    public CoapRequestBuilder con()
+    {
+        this.type = MessageType.CONFIRMABLE;
+        return this;
+    }
+
+    /** 
+     * Sets this message as non-confirmable
+     *
+     * Returns: this builder
+     */
+    public CoapRequestBuilder non()
+    {
+        this.type = MessageType.NON_CONFIRMABLE;
         return this;
     }
 
