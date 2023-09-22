@@ -73,17 +73,28 @@ package class CoapRequest
     }
 
     /** 
-     * Gets the current elapsed time and
-     * then resets it
+     * Checks if this request has expired
+     * according to the given timeout
+     * threshold
      *
-     * Returns: the elapsed time
+     * If timed out then the timer
+     * restarts.
+     *
+     * Returns: `true` if timed out,
+     * `false` if not
      */
-    package Duration getAndReset()
+    package bool hasTimedOut(Duration timeoutThreshold)
     {
-        // Get the value and restart timer
-        Duration elapsed = timer.peek();
-        timer.reset();
-        return elapsed;
+        // Check if the threshold has been reached
+        if(timer.peek() >= timeoutThreshold)
+        {
+            timer.reset();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
 

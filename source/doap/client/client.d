@@ -253,7 +253,7 @@ public class CoapClient
             requestsLock.lock();
             foreach(CoapRequest curReq; outgoingRequests)
             {
-                if(curReq.getAndReset() >= retransmitTimeout)
+                if(curReq.hasTimedOut(retransmitTimeout))
                 {
                     // TODO: Retransmit
                 }
