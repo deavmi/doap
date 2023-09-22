@@ -2,6 +2,7 @@ module doap.client.mesglayer;
 
 import doap.client.client : CoapClient;
 import std.socket : Address;
+import doap.protocol.packet : CoapPacket;
 
 public abstract class CoapMessagingLayerFR
 {
@@ -43,4 +44,23 @@ public abstract class CoapMessagingLayerFR
     {
         return this.client.address;
     }
+
+    /**
+     * Starts the messaging layer
+     */
+    public abstract void begin();
+
+    /** 
+     * Transmit the provided packet
+     *
+     * Params:
+     *   packet = the `CoapPacket`
+     * to transmit
+     */
+    public abstract void send(CoapPacket packet);
+
+    /**
+     * Stops the messaging layer
+     */
+    public abstract void close();
 }
