@@ -9,9 +9,25 @@ doap
 
 ## Usage
 
-TODO: Add docs
+Documentation is available [here](https://doap.dpldocs.info/).
+
+### Making a request
 
 ```
+CoapClient client = new CoapClient("coap.me", 5683);
+    
+CoapRequestFuture future = client.newRequestBuilder()
+                        .payload(cast(ubyte[])"Hello this is Tristan!")
+                        .token([69])
+                        .post();
+
+
+writeln("Future start");
+CoapPacket response  = future.get();
+writeln("Future done");
+writeln("Got response: ", response);
+
+client.close();
 ```
 
 ## License
