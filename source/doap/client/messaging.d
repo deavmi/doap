@@ -25,12 +25,17 @@ import std.socket : Socket, Address, SocketType, ProtocolType, getAddress, parse
  * Handles the actual sending and receiving
  * of datagrams and fulfilling of requests
  */
-class CoapMessagingLayer : Thread
+class CoapMessagingLayer
 {
     /** 
      * The client
      */
     private CoapClient client;
+
+    /** 
+     * Reading-loop thread
+     */
+    private Thread readingThread;
 
     /** 
      * Running status
@@ -51,7 +56,6 @@ class CoapMessagingLayer : Thread
      */
     this(CoapClient client)
     {
-        super(&loop);
         this.client = client;
     }
 
@@ -84,9 +88,9 @@ class CoapMessagingLayer : Thread
         // this.socket.blocking(true);
         this.socket.connect(getEndpointAddress());
 
-
-        // Start the thread (TODO: In future hide threading)
-        this.start();
+        // Create the reading-loop thread and start it
+        this.readingThread = new Thread(&loop);
+        this.readingThread.start();
     }
 
     /** 
@@ -124,7 +128,7 @@ class CoapMessagingLayer : Thread
         this.socket.close();
 
         // Wait till the reading-loop thread exits
-        this.join();
+        this.readingThread.join();
     }
 
     /** 
