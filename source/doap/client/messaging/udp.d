@@ -1,4 +1,4 @@
-module doap.client.messaging;
+module doap.client.messaging.udp;
 
 import doap.client.client : CoapClient;
 import core.thread : Thread;
@@ -15,19 +15,15 @@ import std.socket : Address;
 
 import std.socket : Socket, Address, SocketType, ProtocolType, getAddress, parseAddress, InternetAddress, SocketShutdown;
 
-import doap.client.mesglayer : CoapMessagingLayerFR;
-
-// TODO: Generalize this and then make
-// ... a UDP version of it
+import doap.client.messaging;
 
 /**
- * Stateful management of responses for
- * previously made requests.
+ * UDP-based messaging layer
  *
  * Handles the actual sending and receiving
  * of datagrams and fulfilling of requests
  */
-public class CoapMessagingLayer : CoapMessagingLayerFR
+public class UDPMessaging : CoapMessagingLayer
 {
     /** 
      * Reading-loop thread

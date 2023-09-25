@@ -1,10 +1,10 @@
-module doap.client.mesglayer;
+module doap.client.messaging.core;
 
 import doap.client.client : CoapClient;
 import std.socket : Address;
 import doap.protocol.packet : CoapPacket;
 
-public abstract class CoapMessagingLayerFR
+public abstract class CoapMessagingLayer
 {
     /** 
      * The client
