@@ -48,7 +48,7 @@ public class CoapClient
     /**
      * Rolling Message ID
      */
-    private ulong rollingMid;
+    private ushort rollingMid;
     private Mutex rollingLock;
 
     /** 
@@ -74,9 +74,9 @@ public class CoapClient
         init();
     }
 
-    package ulong newMid()
+    package ushort newMid()
     {
-        ulong newValue;
+        ushort newValue;
 
         // Lock rolling counter
         this.rollingLock.lock();
