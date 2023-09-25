@@ -102,7 +102,7 @@ public class CoapClient
      * Maximum lifetime of a message ID before
      * it is considered for re-use
      */
-    private Duration EXCHANGE_LIFETIME = dur!("seconds")(500000);
+    private Duration EXCHANGE_LIFETIME = dur!("msecs")(10);
 
     /** 
      * Generates a new message ID
