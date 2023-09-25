@@ -74,7 +74,12 @@ public class CoapClient
         init();
     }
 
-    package ushort newMid()
+    /** 
+     * Generates a new message ID
+     *
+     * Returns: the next message id
+     */
+    private final ushort newMid()
     {
         ushort newValue;
 
