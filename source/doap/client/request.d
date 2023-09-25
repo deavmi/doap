@@ -430,8 +430,6 @@ public class CoapRequestFuture
         }
         else
         {
-            // TODO: Make this a specific exception so the user can easily check for it
-            // ... (see feature/cancellable_future for how this would need to be update)
             throw new RequestTimeoutException(this, timeout);
         }
     }
