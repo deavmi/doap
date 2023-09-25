@@ -2,7 +2,7 @@ module doap.client.request;
 
 import doap.client.client : CoapClient;
 import doap.protocol;
-import doap.exceptions;
+import doap.client.exceptions;
 import core.time : Duration;
 import std.datetime.stopwatch : StopWatch, AutoStart;
 
@@ -181,12 +181,15 @@ package class CoapRequestBuilder
      * Params:
      *   tkn = the token
      * Returns: this builder
+     * Throws:
+     *      CoapClientException = invalid token
+     * length
      */
     public CoapRequestBuilder token(ubyte[] tkn)
     {
         if(tkn.length > 8)
         {
-            throw new CoapException("The token cannot be more than 8 bytes");
+            throw new CoapClientException("The token cannot be more than 8 bytes");
         }
 
         this.tkn = tkn;
@@ -393,7 +396,7 @@ public class CoapRequestFuture
         // On error
         else
         {
-            throw new CoapException("Request future cancelled");
+            throw new CoapClientException("Request future cancelled");
         }   
     }
 
@@ -415,7 +418,7 @@ public class CoapRequestFuture
         {
             // TODO: Make this a specific exception so the user can easily check for it
             // ... (see feature/cancellable_future for how this would need to be update)
-            throw new CoapException("Timed out whilst waiting");
+            throw new RequestTimeoutException(this, timeout);
         }
     }
     
