@@ -283,7 +283,9 @@ public class CoapClient
                 // TODO: Retransmit
                 writeln("YO WE FOUND A TIMED OUT BAD BOI: ", curReq);
 
-                // TODO: Manipulate and make a new packet!
+                // TODO: Manipulate the original packet (I believe the mid must change)
+                // ... we should update the packet INSIDE of the `curRequest` so that
+                // ... that modified packet gets transmitted
                 transmitRequest(curReq);
             }
         }
