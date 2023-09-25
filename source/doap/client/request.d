@@ -435,6 +435,7 @@ public class CoapRequestFuture
         }
         else
         {
+            this.state = RequestState.TIMEDOUT;
             throw new RequestTimeoutException(this, timeout);
         }
     }
