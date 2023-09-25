@@ -45,6 +45,12 @@ public class CoapClient
      */
     private Condition watcherSignal;
 
+    /**
+     * Rolling Message ID
+     */
+    private ulong rollingMid;
+    private Mutex rollingLock;
+
     /** 
      * Creates a new CoAP client to the
      * provided endpoint address
@@ -61,6 +67,9 @@ public class CoapClient
 
         this.requestsLock = new Mutex();
         this.watcherSignal = new Condition(this.requestsLock);
+
+        this.rollingMid = 0;
+        this.rollingLock = new Mutex();
 
         init();
     }
