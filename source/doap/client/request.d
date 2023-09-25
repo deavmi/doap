@@ -431,6 +431,7 @@ public class CoapRequestFuture
         // Await a response
         if(this.condition.wait(timeout))
         {
+            this.state = RequestState.COMPLETED;
             return this.response;
         }
         else
