@@ -51,6 +51,9 @@ public class CoapClient
     private ushort rollingMid;
     private Mutex rollingLock;
 
+    import std.datetime.stopwatch : StopWatch;
+    private StopWatch[ushort] mids;
+
     /** 
      * Creates a new CoAP client to the
      * provided endpoint address
@@ -93,6 +96,43 @@ public class CoapClient
         this.rollingLock.unlock();
 
         return newValue;
+    }
+
+    private Duration EXCHANGE_LIFETIME = dur!("seconds")(500000);
+
+    private final ushort newMid2()
+    {
+        ushort guessStart = 0;
+
+        // Lock rolling counter
+        this.rollingLock.lock();
+
+        scope(exit)
+        {
+            // Unlock rolling counter
+            this.rollingLock.unlock();
+        }
+
+        ushort[] inUse;
+
+        foreach(ushort occupied; this.mids.keys())
+        {
+            // Peek the value of the stopwatch
+            if(this.mids[occupied].peek() >= EXCHANGE_LIFETIME)
+            {
+                // It's expired, so we can use it (first reset the time)
+                this.mids[occupied].reset();
+
+                return occupied;
+            }
+            else
+            {
+                inUse ~= occupied;
+            }
+        }
+
+        // import doap.
+        return 
     }
 
     /** 
