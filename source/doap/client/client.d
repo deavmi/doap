@@ -240,7 +240,16 @@ public class CoapClient
      */
     package void onNoNewMessages()
     {
-        writeln("onNoNewMessages: enter");
+        version(unittest)
+        {
+            import std.stdio : writeln;
+            writeln("onNoNewMessages: enter");
+            scope(exit)
+            {
+                writeln("onNoNewMessages: leave");
+            }
+        }
+        
 
         requestsLock.lock();
         foreach(CoapRequest curReq; outgoingRequests)
@@ -251,8 +260,6 @@ public class CoapClient
             }
         }
         requestsLock.unlock();
-
-        writeln("onNoNewMessages: leave");
     }
 }
 
