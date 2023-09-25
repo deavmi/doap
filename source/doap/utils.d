@@ -120,6 +120,17 @@ public bool isPresent(T)(T[] array, T value)
     }
 }
 
+unittest
+{
+    ubyte[] values = [1,2,3];
+    foreach(ubyte value; values)
+    {
+        assert(isPresent(values, value));
+    }
+    assert(isPresent(values, 0) == false);
+    assert(isPresent(values, 5) == false);
+}
+
 public T findNextFree(T)(T[] used) if(__traits(isIntegral, T))
 {
     T found;
