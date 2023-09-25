@@ -82,6 +82,9 @@ public class CoapClient
 
         // FIXME: Set to a reasonable value
         setTimeout(dur!("seconds")(5));
+
+        // start watcher
+        // initWatcher();
     }
 
     /** 
@@ -111,6 +114,9 @@ public class CoapClient
     {
         // Set status to not running
         this.running = false;
+
+        // Wait for the watcher 
+        // this.watcher.join();
 
         // Shutdown the messaging layer
         this.messaging.close();
@@ -270,9 +276,40 @@ public class CoapClient
             if(curReq.hasTimedOut(retransmitTimeout))
             {
                 // TODO: Retransmit
+                writeln("YO WE FOUND A TIMED OUT BAD BOI: ", curReq);
             }
         }
         requestsLock.unlock();
+    }
+
+
+
+    // TODO: Below code could be placed INTO our messaging
+    // ... UDP layer and it could simply be doing this
+    // ... for us
+
+
+    private void watch()
+    {
+        import std.stdio : writeln;
+        import core.thread : Thread;
+        while(this.running)
+        {
+            writeln("Watcher ENTER");
+
+            onNoNewMessages();
+            
+
+            writeln("Watcher SLEEP");
+            Thread.sleep(this.retransmitTimeout);
+        }
+    }
+
+    private Thread watcher;
+    private void initWatcher()
+    {
+        this.watcher = new Thread(&watch);
+        this.watcher.start();
     }
 }
 
