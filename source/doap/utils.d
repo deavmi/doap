@@ -149,3 +149,10 @@ public T findNextFree(T)(T[] used) if(__traits(isIntegral, T))
         return found;
     }
 }
+
+unittest
+{
+    ubyte[] values = [1,2,3];
+    ubyte free = findNextFree(values);
+    assert(isPresent(values, free) == false);
+}
