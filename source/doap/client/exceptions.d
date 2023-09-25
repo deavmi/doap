@@ -14,7 +14,7 @@ public class CoapClientException : CoapException
 import doap.client.request : CoapRequestFuture;
 import std.conv : to;
 
-package final class RequestTimeoutException : CoapClientException
+public final class RequestTimeoutException : CoapClientException
 {
     /** 
      * The future we timed out on
@@ -35,7 +35,7 @@ package final class RequestTimeoutException : CoapClientException
      *   timeout = the time duration timed out
      * on
      */
-    this(CoapRequestFuture future, Duration timeout)
+    package this(CoapRequestFuture future, Duration timeout)
     {
         super("Timed out whilst waiting for "~to!(string)(future)~" after "~to!(string)(timeout));
         this.future = future;
