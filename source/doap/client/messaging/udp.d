@@ -135,43 +135,6 @@ public class UDPMessaging : CoapMessagingLayer
         {
             writeln("h");
 
-
-            // TODO: Add select here, if readbale THEN do the below
-            /** 
-             * TODO: Add a call to select(), if NOTHING is available
-             * then call the client's `onNoNewMessages()`.
-             *
-             * After this do a timed `receive()` below (this is where
-             * the thread gets some rest by doing a timed I/O wait).
-             *
-             * Recall, however, we don't want to wait forever, as
-             * we may now have elapsed over a request time-out
-             * for a CoapRequest and should loop back to the top
-             * to call `onNoNewMessages()`
-             */
-
-
-            // SocketSet readSet = new SocketSet();
-            // readSet.add(this.client.socket);
-            // Socket.select(readSet, null, null);
-
-            // If there is NOT data available
-            // if(!readSet.isSet(this.client.socket))
-            // {
-                // writeln("No data available");
-
-                // TODO: Implement me
-            // }
-            
-
-
-
-
-            // TODO: Check if socket is readable, if not,
-            // ... check timers on outstanding messages
-            // ... and do any resends needed
-
-
             /** 
              * With a UDP socket (so far I have seen) MSG_TRUNC
              * seems to screw up the `recv()` timeout behaviour,
