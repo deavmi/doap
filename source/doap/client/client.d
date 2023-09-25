@@ -240,6 +240,8 @@ public class CoapClient
      */
     package void onNoNewMessages()
     {
+        writeln("onNoNewMessages: enter");
+
         requestsLock.lock();
         foreach(CoapRequest curReq; outgoingRequests)
         {
@@ -249,6 +251,8 @@ public class CoapClient
             }
         }
         requestsLock.unlock();
+
+        writeln("onNoNewMessages: leave");
     }
 }
 
