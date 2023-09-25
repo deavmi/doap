@@ -225,7 +225,6 @@ public class CoapClient
         request.startTime();
     }
 
-    // private Duration sweepInterval;
     private Duration retransmitTimeout;
 
     /** 
