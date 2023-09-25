@@ -271,6 +271,8 @@ public class CoapClient
                 writeln("onNoNewMessages: leave");
             }
         }
+
+        import std.stdio : writeln;
         
 
         requestsLock.lock();
