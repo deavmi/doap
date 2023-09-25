@@ -331,6 +331,8 @@ version(unittest)
  *
  * See above except we test a timeout-based
  * request future here.
+ *
+ * This test DOES time out
  */
 unittest
 {
@@ -359,7 +361,5 @@ unittest
         assert(true);
     }
 
-    writeln("Closing client...");
     client.close();
-    writeln("Client closed");
 }
