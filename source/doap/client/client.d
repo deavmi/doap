@@ -302,21 +302,21 @@ version(unittest)
  */
 unittest
 {
-    // CoapClient client = new CoapClient("coap.me", 5683);
+    CoapClient client = new CoapClient("coap.me", 5683);
 
     
-    // CoapRequestFuture future = client.newRequestBuilder()
-    //                           .payload(cast(ubyte[])"Hello this is Tristan!")
-    //                           .token([69])
-    //                           .post();
+    CoapRequestFuture future = client.newRequestBuilder()
+                              .payload(cast(ubyte[])"Hello this is Tristan!")
+                              .token([69])
+                              .post();
 
 
-    // writeln("Future start");
-    // CoapPacket response  = future.get();
-    // writeln("Future done");
-    // writeln("Got response: ", response);
+    writeln("Future start");
+    CoapPacket response  = future.get();
+    writeln("Future done");
+    writeln("Got response: ", response);
 
-    // client.close();
+    client.close();
 }
 
 version(unittest)
