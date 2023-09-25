@@ -79,6 +79,9 @@ public class CoapClient
     this(string host, ushort port)
     {
         this(new InternetAddress(host, port));
+
+        // FIXME: Set to a reasonable value
+        setTimeout(dur!("seconds")(5));
     }
 
     /** 
@@ -337,7 +340,7 @@ unittest
     writeln("Future done");
     writeln("Got response: ", response);
 
-    client.close();
+    // client.close();
 }
 
 version(unittest)
