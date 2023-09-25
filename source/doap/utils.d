@@ -100,6 +100,17 @@ unittest
    
 }
 
+/** 
+ * Checks if the given value is present in
+ * the given array
+ *
+ * Params:
+ *   array = the array to check against
+ *   value = the value to check prescence
+ * for
+ * Returns: `true` if present, `false`
+ * otherwise
+ */
 public bool isPresent(T)(T[] array, T value)
 {
     if(array.length == 0)
