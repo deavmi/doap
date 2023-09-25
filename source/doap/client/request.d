@@ -76,6 +76,17 @@ package class CoapRequest
     }
 
     /** 
+     * Gets the message ID from the original
+     * request that was made
+     *
+     * Returns: the message id
+     */
+    public ushort getMid()
+    {
+        return this.requestPacket.getMessageId();
+    }
+
+    /** 
      * Starts the timer
      */
     package void startTime()

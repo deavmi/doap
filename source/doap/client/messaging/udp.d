@@ -228,7 +228,7 @@ public class UDPMessaging : CoapMessagingLayer
      */
     private void handlePacket(CoapPacket packet)
     {
-        CoapRequest request = getClient().yankRequest(packet.getToken());
+        CoapRequest request = getClient().yankRequest(packet);
         if(request)
         {
             writeln("Matched response '"~packet.toString()~"' to request '"~request.toString()~"'");

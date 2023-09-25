@@ -45,6 +45,12 @@ public class CoapClient
      */
     private Condition watcherSignal;
 
+    /**
+     * Rolling Message ID
+     */
+    private ushort rollingMid;
+    private Mutex rollingLock;
+
     /** 
      * Creates a new CoAP client to the
      * provided endpoint address
@@ -62,7 +68,26 @@ public class CoapClient
         this.requestsLock = new Mutex();
         this.watcherSignal = new Condition(this.requestsLock);
 
+        this.rollingMid = 0;
+        this.rollingLock = new Mutex();
+
         init();
+    }
+
+    package ushort newMid()
+    {
+        ushort newValue;
+
+        // Lock rolling counter
+        this.rollingLock.lock();
+
+        newValue = this.rollingMid;
+        this.rollingMid++;
+
+        // Unlock rolling counter
+        this.rollingLock.unlock();
+
+        return newValue;
     }
 
     /** 
@@ -157,6 +182,7 @@ public class CoapClient
         requestPacket.setCode(requestBuilder.requestCode);
         requestPacket.setPayload(requestBuilder.pyld);
         requestPacket.setToken(requestBuilder.tkn);
+        requestPacket.setMessageId(newMid());
 
         // Create the future
         CoapRequestFuture future = new CoapRequestFuture();
@@ -189,17 +215,17 @@ public class CoapClient
     }
 
     /** 
-     * Given a token this will try and find an active
+     * Given a packet this will try and find an active
      * request with a matching token and return it.
      *
      * This will also remove it from the requests queue.
      *
      * Params:
-     *   token = the token
+     *   packet = the packet received
      * Returns: the original `CoapRequest` if a match
      * is found, otherwise `null`
      */
-    package CoapRequest yankRequest(ubyte[] token)
+    package CoapRequest yankRequest(CoapPacket packet)
     {
         CoapRequest foundRequest = null;
 
@@ -207,7 +233,7 @@ public class CoapClient
 
         foreach(CoapRequest request; outgoingRequests)
         {
-            if(request.getToken() == token)
+            if(request.getMid() == packet.getMessageId())
             {
                 foundRequest = request;
                 outgoingRequests.linearRemoveElement(foundRequest);
@@ -357,6 +383,48 @@ version(unittest)
 {
     import std.stdio : writeln;
 }
+
+/**
+ * Client testing
+ *
+ * Tests the rolling of the message id
+ */
+unittest
+{
+    CoapClient client = new CoapClient("coap.me", 5683);
+
+    
+    CoapRequestFuture future = client.newRequestBuilder()
+                              .payload(cast(ubyte[])"First message")
+                              .token([69])
+                              .post();
+
+
+    writeln("Future start (first)");
+    CoapPacket response = future.get();
+    writeln("Future done (first)");
+    writeln("Got response (first): ", response);
+    assert(response.getMessageId() == 0);
+
+    future = client.newRequestBuilder()
+                              .payload(cast(ubyte[])"Second message")
+                              .token([69])
+                              .post();
+
+
+    writeln("Future start (second)");
+    response = future.get();
+    writeln("Future done (second)");
+    writeln("Got response (second): ", response);
+    assert(response.getMessageId() == 1);
+
+
+
+
+    client.close();
+}
+
+
 
 /**
  * Client testing
