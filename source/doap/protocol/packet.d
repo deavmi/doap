@@ -89,6 +89,10 @@ public class CoapPacket
         }
 
         // FIXME: Add options encoding
+        foreach(CoapOption option; orderOptions())
+        {
+            encoded ~= encodeOption(option);
+        }
 
         // Set the payload marker
         encoded ~= PAYLOAD_MARKER;
@@ -98,6 +102,20 @@ public class CoapPacket
         
         return encoded;
     }
+
+    // TODO: Make public in the future
+    private static ubyte[] encodeOption(CoapOption option)
+    {
+        // TODO: Implement this
+        return [];
+    }
+
+    private CoapOption[] orderOptions()
+    {
+        // TODO: Implement ordering here
+        return this.options;
+    }
+
 
     public void setType(MessageType type)
     {
