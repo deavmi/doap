@@ -111,8 +111,13 @@ public class CoapClient
         // Shutdown the messaging layer
         this.messaging.close();
         
-        // TODO: We must wake up other sleeprs with an error
-        // (somehow, pass it in, flag set)
+        // Cancel all active request futures
+        this.requestsLock.lock();
+        foreach(CoapRequest curReq; outgoingRequests)
+        {
+            curReq.future.cancel();
+        }
+        this.requestsLock.unlock();
     }
 
     /** 
