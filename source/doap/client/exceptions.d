@@ -14,6 +14,10 @@ public class CoapClientException : CoapException
 import doap.client.request : CoapRequestFuture;
 import std.conv : to;
 
+/** 
+ * Thrown when a `CoapRequestFuture` has
+ * a `get(Duration)` call timeout
+ */
 public final class RequestTimeoutException : CoapClientException
 {
     /** 
