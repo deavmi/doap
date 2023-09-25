@@ -51,7 +51,7 @@ public class CoapClient
     private ushort rollingMid;
     private Mutex rollingLock;
 
-    import std.datetime.stopwatch : StopWatch;
+    import std.datetime.stopwatch : StopWatch, AutoStart;
     private StopWatch[ushort] mids;
 
     /** 
@@ -145,7 +145,7 @@ public class CoapClient
         import doap.utils : findNextFree;
         ushort newMid = findNextFree(inUse);
 
-        this.mids[newMid] = StopWatch();
+        this.mids[newMid] = StopWatch(AutoStart.yes);
 
 
         return newMid;
