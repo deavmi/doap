@@ -387,7 +387,7 @@ unittest
     writeln("Future done");
     writeln("Got response: ", response);
 
-    // client.close();
+    client.close();
 }
 
 // version(unittest)
