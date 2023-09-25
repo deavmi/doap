@@ -70,9 +70,11 @@ public class UDPMessaging : CoapMessagingLayer
         // this.socket.blocking(true);
         this.socket.connect(getEndpointAddress());
 
-        // TODO: Set timeout value to a value set in the `CoapClient`
-        // import std.socket : SocketOption;
-        // this.socket.setOption()
+        // TODO: Busy with this
+        import std.socket : SocketOption, SocketOptionLevel;
+        this.socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, getClient().getTimeout());
+
+        // this.socket.blocking(false);
 
         // Create the reading-loop thread and start it
         this.readingThread = new Thread(&loop);
@@ -142,6 +144,8 @@ public class UDPMessaging : CoapMessagingLayer
              * for a CoapRequest and should loop back to the top
              * to call `onNoNewMessages()`
              */
+
+
             // SocketSet readSet = new SocketSet();
             // readSet.add(this.client.socket);
             // Socket.select(readSet, null, null);
@@ -164,6 +168,8 @@ public class UDPMessaging : CoapMessagingLayer
             SocketFlags flags = cast(SocketFlags)(SocketFlags.PEEK | MSG_TRUNC);
             byte[] data;
             data.length = 1; // At least one else never does underlying recv()
+
+            writeln("I wait recv()");
             ptrdiff_t dgramSize = this.socket.receive(data, flags);
             
             // If we have received something then dequeue it of the peeked length
@@ -185,6 +191,13 @@ public class UDPMessaging : CoapMessagingLayer
                 {
                     writeln("Skipping malformed coap packet");
                 }
+            }
+            // Handle errors
+            else
+            {
+                // TODO: Should never be zero as it is connectionless
+                writeln("Socket ERROR: ", dgramSize);
+                writeln("Run state: ", this.running);
             }
         }
     }
