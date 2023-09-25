@@ -187,16 +187,32 @@ public class UDPMessaging : CoapMessagingLayer
 
             writeln("Peek'd recv: ", dgramSize < 0 ? "Timed out" : "Data available", "(", dgramSize, ")");
 
-            // If we have timed out
+            // If we have timed out or socket shutdown or closed
             if(dgramSize < 0)
             {
+                
+
                 // TODO: Add up-call to client here
                 writeln("Time out runner running now!");
+                writeln("Status: ", this.socket.getErrorText());
+                writeln("Status SOcket: ", this.socket.isAlive());
+
+                import core.stdc.errno : errno;
+
+                // If we timed out (then we'd still be alive)
+                if(this.socket.isAlive())
+                {
+                    writeln("Timed out, doing up-call for retransmission checks");
+                    this.getClient().onNoNewMessages();
+                    writeln("Timed out, doing up-call for retransmission checks [done]");
+                }
+
             }
             // If 0 then socket is closed
             else if(dgramSize == 0)
             {
                 writeln("Socket closed");
+                writeln("Status SOcket: ", this.socket.isAlive());
             }
             // There IS data available
             else
@@ -205,22 +221,31 @@ public class UDPMessaging : CoapMessagingLayer
                 dgramSize = this.socket.receive(data, cast(SocketFlags)(SocketFlags.PEEK | MSG_TRUNC));
                 writeln("MSG_TRUNC, Datagram size is: ", dgramSize);
 
+                // FIXME: Check dgramSize, for case of error (calling on closed, or we get shutdown here)
+                if(dgramSize <= 0)
+                {
+                    break;
+                }
+
                 // Now that we have the size, set the request-array's size to it and dequeue
                 data.length = dgramSize;
-                this.socket.receive(data);
-                writeln("received size: ", dgramSize);
-                writeln("received bytes: ", data);
-
-                try
+                // FIXME: Check return value
+                if(this.socket.receive(data) > 0)
                 {
-                    CoapPacket receivedPacket = CoapPacket.fromBytes(cast(ubyte[])data);
-                    writeln("Incoming coap packet: ", receivedPacket);
+                    writeln("received size: ", dgramSize);
+                    writeln("received bytes: ", data);
 
-                    handlePacket(receivedPacket);
-                }
-                catch(CoapException e)
-                {
-                    writeln("Skipping malformed coap packet");
+                    try
+                    {
+                        CoapPacket receivedPacket = CoapPacket.fromBytes(cast(ubyte[])data);
+                        writeln("Incoming coap packet: ", receivedPacket);
+
+                        handlePacket(receivedPacket);
+                    }
+                    catch(CoapException e)
+                    {
+                        writeln("Skipping malformed coap packet");
+                    }
                 }
             }
         }
