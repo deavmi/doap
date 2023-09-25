@@ -140,8 +140,15 @@ public class CoapClient
             }
         }
 
+        // If none was available for re-use then find next available
+        // ... free and use that (also don't forget to register it)
         import doap.utils : findNextFree;
-        return findNextFree(inUse);
+        ushort newMid = findNextFree(inUse);
+
+        this.mids[newMid] = StopWatch();
+
+
+        return newMid;
     }
 
     /** 
