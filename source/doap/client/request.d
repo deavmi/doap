@@ -379,7 +379,7 @@ public class CoapRequestFuture
      *
      * Returns: the response as a `CoapPacket`
      * Throws:
-     *     CoapException on cancelled request
+     *     CoapClientException on cancelled request
      */
     public CoapPacket get()
     {
@@ -412,9 +412,9 @@ public class CoapRequestFuture
      *
      * Returns: the response as a `CoapPacket`
      * Throws:
-     *     RequestTimeoutException = on the
+     *     RequestTimeoutException on the
      * future request timing out
-     *     CoapClientException = on cancellation
+     *     CoapClientException on cancellation
      * of the request
      */
     public CoapPacket get(Duration timeout)
