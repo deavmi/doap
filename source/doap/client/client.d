@@ -234,7 +234,7 @@ public class CoapClient
         requestPacket.setCode(requestBuilder.requestCode);
         requestPacket.setPayload(requestBuilder.pyld);
         requestPacket.setToken(requestBuilder.tkn);
-        requestPacket.setMessageId(newMid());
+        requestPacket.setMessageId(newMid2());
 
         // Create the future
         CoapRequestFuture future = new CoapRequestFuture();
