@@ -320,6 +320,48 @@ version(unittest)
 /**
  * Client testing
  *
+ * Tests the rolling of the message id
+ */
+unittest
+{
+    CoapClient client = new CoapClient("coap.me", 5683);
+
+    
+    CoapRequestFuture future = client.newRequestBuilder()
+                              .payload(cast(ubyte[])"First message")
+                              .token([69])
+                              .post();
+
+
+    writeln("Future start (first)");
+    CoapPacket response = future.get();
+    writeln("Future done (first)");
+    writeln("Got response (first): ", response);
+    assert(response.getMessageId() == 0);
+
+    future = client.newRequestBuilder()
+                              .payload(cast(ubyte[])"Second message")
+                              .token([69])
+                              .post();
+
+
+    writeln("Future start (second)");
+    response = future.get();
+    writeln("Future done (second)");
+    writeln("Got response (second): ", response);
+    assert(response.getMessageId() == 1);
+
+
+
+
+    client.close();
+}
+
+
+
+/**
+ * Client testing
+ *
  * This tests building of a request using the builder,
  * finalizing through the client and then waiting on
  * the returned future for a result.
