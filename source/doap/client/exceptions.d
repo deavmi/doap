@@ -41,4 +41,27 @@ public final class RequestTimeoutException : CoapClientException
         this.future = future;
         this.timeout = timeout;
     }
+
+    /** 
+     * Returns the future request which timed
+     * out and cause dthis exception to throw
+     * in the first place
+     *
+     * Returns: the `CoapRequestFuture`
+     */
+    public CoapRequestFuture getFuture()
+    {
+        return this.future;
+    }
+
+    /** 
+     * Returns the timeout period which 
+     * was exceeded
+     *
+     * Returns: the `Duration`
+     */
+    public Duration getTimeout()
+    {
+        return this.timeout;
+    }
 }
