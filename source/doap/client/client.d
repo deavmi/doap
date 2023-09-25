@@ -74,6 +74,22 @@ public class CoapClient
         init();
     }
 
+    package ulong newMid()
+    {
+        ulong newValue;
+
+        // Lock rolling counter
+        this.rollingLock.lock();
+
+        newValue = this.rollingMid;
+        this.rollingMid++;
+
+        // Unlock rolling counter
+        this.rollingLock.unlock();
+
+        return newValue;
+    }
+
     /** 
      * Constructs a new CoAP client to the
      * provided endpoint address and port.
