@@ -70,6 +70,10 @@ public class UDPMessaging : CoapMessagingLayer
         // this.socket.blocking(true);
         this.socket.connect(getEndpointAddress());
 
+        // TODO: Set timeout value to a value set in the `CoapClient`
+        // import std.socket : SocketOption;
+        // this.socket.setOption()
+
         // Create the reading-loop thread and start it
         this.readingThread = new Thread(&loop);
         this.readingThread.start();
