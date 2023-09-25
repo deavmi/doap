@@ -112,12 +112,16 @@ public class CoapClient
         this.messaging.close();
         
         // Cancel all active request futures
+        writeln("Awaking any sleeping futures.... (for shutdown)");
         this.requestsLock.lock();
         foreach(CoapRequest curReq; outgoingRequests)
         {
+            writeln("Awaking any sleeping futures.... (for shutdown): ", curReq);
             curReq.future.cancel();
+            writeln("Awaking any sleeping futures.... (for shutdown): ", curReq, " [done]");
         }
         this.requestsLock.unlock();
+        writeln("Awaking any sleeping futures.... (for shutdown) [done]");
     }
 
     /** 
@@ -302,6 +306,37 @@ version(unittest)
  */
 unittest
 {
+    // CoapClient client = new CoapClient("coap.me", 5683);
+
+    
+    // CoapRequestFuture future = client.newRequestBuilder()
+    //                           .payload(cast(ubyte[])"Hello this is Tristan!")
+    //                           .token([69])
+    //                           .post();
+
+
+    // writeln("Future start");
+    // CoapPacket response  = future.get();
+    // writeln("Future done");
+    // writeln("Got response: ", response);
+
+    // client.close();
+}
+
+version(unittest)
+{
+    import core.time : dur;
+    import doap.client.exceptions : RequestTimeoutException;
+}
+
+/**
+ * Client testing
+ *
+ * See above except we test a timeout-based
+ * request future here.
+ */
+unittest
+{
     CoapClient client = new CoapClient("coap.me", 5683);
 
     
@@ -309,12 +344,22 @@ unittest
                               .payload(cast(ubyte[])"Hello this is Tristan!")
                               .token([69])
                               .post();
+                              
+    try
+    {
+        writeln("Future start");
+        CoapPacket response  = future.get(dur!("msecs")(10));
 
+        // We should timeout and NOT get here
+        assert(false);
+    }
+    catch(RequestTimeoutException e)
+    {
+        // We SHOULD time out
+        assert(true);
+    }
 
-    writeln("Future start");
-    CoapPacket response  = future.get();
-    writeln("Future done");
-    writeln("Got response: ", response);
-
+    writeln("Closing client...");
     client.close();
+    writeln("Client closed");
 }

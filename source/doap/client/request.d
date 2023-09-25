@@ -400,18 +400,32 @@ public class CoapRequestFuture
         }   
     }
 
+    /** 
+     * Blocks until the response is received
+     * but will unbllock if the timeout given
+     * is exceeded
+     *
+     * Returns: the response as a `CoapPacket`
+     * Throws:
+     *     RequestTimeoutException = on the
+     * future request timing out
+     */
     public CoapPacket get(Duration timeout)
     {
         // We can only wait on a condition if we
         // ... first have a-hold of the lock
         this.mutex.lock();
 
+        scope(exit)
+        {
+            // Unlock the lock (either from successfully
+            // ... waiting or timing out)
+            this.mutex.unlock();
+        }
+
         // Await a response
         if(this.condition.wait(timeout))
         {
-            // Upon waking up release lock
-            this.mutex.unlock();
-
             return this.response;
         }
         else
