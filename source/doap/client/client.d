@@ -201,9 +201,7 @@ public class CoapClient
             if(request.getToken() == token)
             {
                 foundRequest = request;
-
                 outgoingRequests.linearRemoveElement(foundRequest);
-
                 break;
             }
         }
