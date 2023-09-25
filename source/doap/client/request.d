@@ -54,11 +54,22 @@ package class CoapRequest
         this.timer = StopWatch(AutoStart.no);
     }
 
+    /** 
+     * Gets the original request made
+     *
+     * Returns: the request packet
+     */
     public CoapPacket getRequestPacket()
     {
         return this.requestPacket;
     }
 
+    /** 
+     * Gets the token from the original request
+     * that was made
+     *
+     * Returns: the token
+     */
     public ubyte[] getToken()
     {
         return this.requestPacket.getToken();
