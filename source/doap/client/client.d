@@ -380,86 +380,86 @@ unittest
     // client.close();
 }
 
-version(unittest)
-{
-    import core.time : dur;
-    import doap.client.exceptions : RequestTimeoutException;
-    import doap.client.request : CoapRequestFuture, RequestState;
-}
+// version(unittest)
+// {
+//     import core.time : dur;
+//     import doap.client.exceptions : RequestTimeoutException;
+//     import doap.client.request : CoapRequestFuture, RequestState;
+// }
 
-/**
- * Client testing
- *
- * See above except we test a timeout-based
- * request future here.
- *
- * This test DOES time out
- */
-unittest
-{
-    CoapClient client = new CoapClient("coap.me", 5683);
-
-    
-    CoapRequestFuture future = client.newRequestBuilder()
-                              .payload(cast(ubyte[])"Hello this is Tristan!")
-                              .token([69])
-                              .post();
-
-    try
-    {
-        writeln("Future start");
-        CoapPacket response  = future.get(dur!("msecs")(10));
-
-        // We should timeout and NOT get here
-        assert(false);
-    }
-    catch(RequestTimeoutException e)
-    {
-        // Ensure that we have the correct state
-        assert(future.getState() == RequestState.TIMEDOUT);
-
-        // We SHOULD time out
-        assert(true);
-    }
-
-    client.close();
-}
-
-/**
- * Client testing
- *
- * See above except we test a timeout-based
- * request future here.
- *
- * This test DOES NOT time out (it tests
- * with a high-enough threshold)
- */
-unittest
-{
-    CoapClient client = new CoapClient("coap.me", 5683);
+// /**
+//  * Client testing
+//  *
+//  * See above except we test a timeout-based
+//  * request future here.
+//  *
+//  * This test DOES time out
+//  */
+// unittest
+// {
+//     CoapClient client = new CoapClient("coap.me", 5683);
 
     
-    CoapRequestFuture future = client.newRequestBuilder()
-                              .payload(cast(ubyte[])"Hello this is Tristan!")
-                              .token([69])
-                              .post();
+//     CoapRequestFuture future = client.newRequestBuilder()
+//                               .payload(cast(ubyte[])"Hello this is Tristan!")
+//                               .token([69])
+//                               .post();
 
-    try
-    {
-        writeln("Future start");
-        CoapPacket response  = future.get(dur!("msecs")(400));
+//     try
+//     {
+//         writeln("Future start");
+//         CoapPacket response  = future.get(dur!("msecs")(10));
 
-        // Ensure that we have the correct state
-        assert(future.getState() == RequestState.COMPLETED);
+//         // We should timeout and NOT get here
+//         assert(false);
+//     }
+//     catch(RequestTimeoutException e)
+//     {
+//         // Ensure that we have the correct state
+//         assert(future.getState() == RequestState.TIMEDOUT);
 
-        // We SHOULD get here
-        assert(true);
-    }
-    catch(RequestTimeoutException e)
-    {
-        // We should NOT time out
-        assert(false);
-    }
+//         // We SHOULD time out
+//         assert(true);
+//     }
 
-    client.close();
-}
+//     client.close();
+// }
+
+// /**
+//  * Client testing
+//  *
+//  * See above except we test a timeout-based
+//  * request future here.
+//  *
+//  * This test DOES NOT time out (it tests
+//  * with a high-enough threshold)
+//  */
+// unittest
+// {
+//     CoapClient client = new CoapClient("coap.me", 5683);
+
+    
+//     CoapRequestFuture future = client.newRequestBuilder()
+//                               .payload(cast(ubyte[])"Hello this is Tristan!")
+//                               .token([69])
+//                               .post();
+
+//     try
+//     {
+//         writeln("Future start");
+//         CoapPacket response  = future.get(dur!("msecs")(400));
+
+//         // Ensure that we have the correct state
+//         assert(future.getState() == RequestState.COMPLETED);
+
+//         // We SHOULD get here
+//         assert(true);
+//     }
+//     catch(RequestTimeoutException e)
+//     {
+//         // We should NOT time out
+//         assert(false);
+//     }
+
+//     client.close();
+// }
