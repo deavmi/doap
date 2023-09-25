@@ -142,6 +142,15 @@ unittest
     assert(isPresent(values, 5) == false);
 }
 
+/** 
+ * Given an array of values this tries to find
+ * the next free value of which is NOT present
+ * within the given array
+ *
+ * Params:
+ *   used = the array of values
+ * Returns: the free value
+ */
 public T findNextFree(T)(T[] used) if(__traits(isIntegral, T))
 {
     T found;
