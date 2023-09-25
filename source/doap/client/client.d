@@ -181,7 +181,9 @@ public class CoapClient
 
     /** 
      * Given a token this will try and find an active
-     * request with a matching token and return it
+     * request with a matching token and return it.
+     *
+     * This will also remove it from the requests queue.
      *
      * Params:
      *   token = the token
@@ -200,7 +202,8 @@ public class CoapClient
             {
                 foundRequest = request;
 
-                // FIXME: We should remove it here?
+                outgoingRequests.linearRemoveElement(foundRequest);
+
                 break;
             }
         }
