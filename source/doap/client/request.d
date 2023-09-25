@@ -280,7 +280,12 @@ public enum RequestState
     /** 
      * The future was cancelled
      */
-    CANCELLED
+    CANCELLED,
+
+    /** 
+     * The future timed out
+     */
+    TIMEDOUT
 }
 
 /** 
