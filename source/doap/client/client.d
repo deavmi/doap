@@ -227,6 +227,16 @@ public class CoapClient
 
     private Duration retransmitTimeout;
 
+    public Duration getTimeout()
+    {
+        return this.retransmitTimeout;
+    }
+
+    public void setTimeout(Duration timeout)
+    {
+        this.retransmitTimeout = timeout;
+    }
+
     /** 
      * The intention of this method is that
      * some kind-of `CoapMessagingLayer`
