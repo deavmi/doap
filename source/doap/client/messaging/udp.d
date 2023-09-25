@@ -70,9 +70,9 @@ public class UDPMessaging : CoapMessagingLayer
         // this.socket.blocking(true);
 
         // TODO: Busy with this
-        // import std.socket : SocketOption, SocketOptionLevel;
-        // import core.time : dur;
-        // this.socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, dur!("seconds")(5));
+        import std.socket : SocketOption, SocketOptionLevel;
+        import core.time : dur;
+        this.socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, dur!("seconds")(5));
         // this.socket.blocking(false);
 
 
@@ -170,16 +170,42 @@ public class UDPMessaging : CoapMessagingLayer
             // TODO: Check if socket is readable, if not,
             // ... check timers on outstanding messages
             // ... and do any resends needed
-            SocketFlags flags = cast(SocketFlags)(SocketFlags.PEEK | MSG_TRUNC);
+
+
+            /** 
+             * With a UDP socket (so far I have seen) MSG_TRUNC
+             * seems to screw up the `recv()` timeout behaviour,
+             * therefore we should use the peek as our waiting
+             * point, THEN PEEK+TRUNC and then finally normal
+             * `recv()`
+             */
+            SocketFlags flags = cast(SocketFlags)(SocketFlags.PEEK);
             byte[] data;
             data.length = 1; // At least one else never does underlying recv()
-
             writeln("I wait recv()");
             ptrdiff_t dgramSize = this.socket.receive(data, flags);
-            
-            // If we have received something then dequeue it of the peeked length
-            if(dgramSize > 0)
+
+            writeln("Peek'd recv: ", dgramSize < 0 ? "Timed out" : "Data available", "(", dgramSize, ")");
+
+            // If we have timed out
+            if(dgramSize < 0)
             {
+                // TODO: Add up-call to client here
+                writeln("Time out runner running now!");
+            }
+            // If 0 then socket is closed
+            else if(dgramSize == 0)
+            {
+                writeln("Socket closed");
+            }
+            // There IS data available
+            else
+            {
+                // Peek but use TRUNC to get the datagram size returned
+                dgramSize = this.socket.receive(data, cast(SocketFlags)(SocketFlags.PEEK | MSG_TRUNC));
+                writeln("MSG_TRUNC, Datagram size is: ", dgramSize);
+
+                // Now that we have the size, set the request-array's size to it and dequeue
                 data.length = dgramSize;
                 this.socket.receive(data);
                 writeln("received size: ", dgramSize);
@@ -196,13 +222,6 @@ public class UDPMessaging : CoapMessagingLayer
                 {
                     writeln("Skipping malformed coap packet");
                 }
-            }
-            // Handle errors
-            else
-            {
-                // TODO: Should never be zero as it is connectionless
-                writeln("Socket ERROR: ", dgramSize);
-                writeln("Run state: ", this.running);
             }
         }
     }
