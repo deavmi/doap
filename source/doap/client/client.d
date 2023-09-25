@@ -98,8 +98,17 @@ public class CoapClient
         return newValue;
     }
 
+    /** 
+     * Maximum lifetime of a message ID before
+     * it is considered for re-use
+     */
     private Duration EXCHANGE_LIFETIME = dur!("seconds")(500000);
 
+    /** 
+     * Generates a new message ID
+     *
+     * Returns: the next message id
+     */
     private final ushort newMid2()
     {
         ushort guessStart = 0;
@@ -131,8 +140,8 @@ public class CoapClient
             }
         }
 
-        // import doap.
-        return 
+        import doap.utils : findNextFree;
+        return findNextFree(inUse);
     }
 
     /** 
