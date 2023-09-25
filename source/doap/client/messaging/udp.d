@@ -68,13 +68,18 @@ public class UDPMessaging : CoapMessagingLayer
         // TODO: IF connect fails then don't start messaging
         this.socket = new Socket(getEndpointAddress().addressFamily(), SocketType.DGRAM, ProtocolType.UDP);
         // this.socket.blocking(true);
-        this.socket.connect(getEndpointAddress());
 
         // TODO: Busy with this
         import std.socket : SocketOption, SocketOptionLevel;
-        this.socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, getClient().getTimeout());
+        import core.time : dur;
+        this.socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, dur!("seconds")(5));
+        this.socket.blocking(false);
 
-        // this.socket.blocking(false);
+
+        this.socket.connect(getEndpointAddress());
+
+        
+
 
         // Create the reading-loop thread and start it
         this.readingThread = new Thread(&loop);
