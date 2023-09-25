@@ -70,10 +70,10 @@ public class UDPMessaging : CoapMessagingLayer
         // this.socket.blocking(true);
 
         // TODO: Busy with this
-        import std.socket : SocketOption, SocketOptionLevel;
-        import core.time : dur;
-        this.socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, dur!("seconds")(5));
-        this.socket.blocking(false);
+        // import std.socket : SocketOption, SocketOptionLevel;
+        // import core.time : dur;
+        // this.socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, dur!("seconds")(5));
+        // this.socket.blocking(false);
 
 
         this.socket.connect(getEndpointAddress());
