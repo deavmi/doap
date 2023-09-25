@@ -414,6 +414,8 @@ public class CoapRequestFuture
      * Throws:
      *     RequestTimeoutException = on the
      * future request timing out
+     *     CoapClientException = on cancellation
+     * of the request
      */
     public CoapPacket get(Duration timeout)
     {
@@ -431,8 +433,16 @@ public class CoapRequestFuture
         // Await a response
         if(this.condition.wait(timeout))
         {
-            this.state = RequestState.COMPLETED;
-            return this.response;
+            // If successfully completed
+            if(this.state == RequestState.COMPLETED)
+            {
+                return this.response;
+            }
+            // On error
+            else
+            {
+                throw new CoapClientException("Request future cancelled");
+            }
         }
         else
         {
