@@ -112,16 +112,12 @@ public class CoapClient
         this.messaging.close();
         
         // Cancel all active request futures
-        writeln("Awaking any sleeping futures.... (for shutdown)");
         this.requestsLock.lock();
         foreach(CoapRequest curReq; outgoingRequests)
         {
-            writeln("Awaking any sleeping futures.... (for shutdown): ", curReq);
             curReq.future.cancel();
-            writeln("Awaking any sleeping futures.... (for shutdown): ", curReq, " [done]");
         }
         this.requestsLock.unlock();
-        writeln("Awaking any sleeping futures.... (for shutdown) [done]");
     }
 
     /** 
@@ -327,6 +323,7 @@ version(unittest)
 {
     import core.time : dur;
     import doap.client.exceptions : RequestTimeoutException;
+    import doap.client.request : CoapRequestFuture, RequestState;
 }
 
 /**
@@ -344,7 +341,7 @@ unittest
                               .payload(cast(ubyte[])"Hello this is Tristan!")
                               .token([69])
                               .post();
-                              
+
     try
     {
         writeln("Future start");
@@ -355,6 +352,9 @@ unittest
     }
     catch(RequestTimeoutException e)
     {
+        // Ensure that we have the correct state
+        assert(future.getState() == RequestState.TIMEDOUT);
+
         // We SHOULD time out
         assert(true);
     }
