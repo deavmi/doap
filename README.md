@@ -13,7 +13,7 @@ Documentation is available [here](https://doap.dpldocs.info/).
 
 ### Making a request
 
-```
+```d
 CoapClient client = new CoapClient("coap.me", 5683);
     
 CoapRequestFuture future = client.newRequestBuilder()
