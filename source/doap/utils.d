@@ -99,3 +99,42 @@ unittest
     }
    
 }
+
+public bool isPresent(T)(T[] array, T value)
+{
+    if(array.length == 0)
+    {
+        return false;
+    }
+    else
+    {
+        foreach(T cur; array)
+        {
+            if(cur == value)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+public T findNextFree(T)(T[] used) if(__traits(isIntegral, T))
+{
+    T found;
+    if(used.length == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        found = 0;
+        while(isPresent(used, found))
+        {
+            found++;
+        }
+
+        return found;
+    }
+}
