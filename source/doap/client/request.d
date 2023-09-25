@@ -2,7 +2,7 @@ module doap.client.request;
 
 import doap.client.client : CoapClient;
 import doap.protocol;
-import doap.exceptions;
+import doap.client.exceptions;
 import core.time : Duration;
 import std.datetime.stopwatch : StopWatch, AutoStart;
 
@@ -181,12 +181,15 @@ package class CoapRequestBuilder
      * Params:
      *   tkn = the token
      * Returns: this builder
+     * Throws:
+     *      CoapClientException = invalid token
+     * length
      */
     public CoapRequestBuilder token(ubyte[] tkn)
     {
         if(tkn.length > 8)
         {
-            throw new CoapException("The token cannot be more than 8 bytes");
+            throw new CoapClientException("The token cannot be more than 8 bytes");
         }
 
         this.tkn = tkn;
@@ -277,7 +280,12 @@ public enum RequestState
     /** 
      * The future was cancelled
      */
-    CANCELLED
+    CANCELLED,
+
+    /** 
+     * The future timed out
+     */
+    TIMEDOUT
 }
 
 /** 
@@ -371,7 +379,7 @@ public class CoapRequestFuture
      *
      * Returns: the response as a `CoapPacket`
      * Throws:
-     *     CoapException on cancelled request
+     *     CoapClientException on cancelled request
      */
     public CoapPacket get()
     {
@@ -393,10 +401,56 @@ public class CoapRequestFuture
         // On error
         else
         {
-            throw new CoapException("Request future cancelled");
+            throw new CoapClientException("Request future cancelled");
         }   
     }
 
+    /** 
+     * Blocks until the response is received
+     * but will unbllock if the timeout given
+     * is exceeded
+     *
+     * Returns: the response as a `CoapPacket`
+     * Throws:
+     *     RequestTimeoutException on the
+     * future request timing out
+     *     CoapClientException on cancellation
+     * of the request
+     */
+    public CoapPacket get(Duration timeout)
+    {
+        // We can only wait on a condition if we
+        // ... first have a-hold of the lock
+        this.mutex.lock();
+
+        scope(exit)
+        {
+            // Unlock the lock (either from successfully
+            // ... waiting or timing out)
+            this.mutex.unlock();
+        }
+
+        // Await a response
+        if(this.condition.wait(timeout))
+        {
+            // If successfully completed
+            if(this.state == RequestState.COMPLETED)
+            {
+                return this.response;
+            }
+            // On error
+            else
+            {
+                throw new CoapClientException("Request future cancelled");
+            }
+        }
+        else
+        {
+            this.state = RequestState.TIMEDOUT;
+            throw new RequestTimeoutException(this, timeout);
+        }
+    }
+    
     /** 
      * Returns the state of this future
      *
