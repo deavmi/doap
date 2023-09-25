@@ -199,6 +199,8 @@ public class CoapClient
             if(request.getToken() == token)
             {
                 foundRequest = request;
+
+                // FIXME: We should remove it here?
                 break;
             }
         }
