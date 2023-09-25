@@ -4,7 +4,7 @@ import doap.protocol.types : MessageType;
 import doap.protocol.codes : Code;
 import doap.exceptions : CoapException;
 import std.conv : to;
-import doap.protocol.utils : order, Order;
+import doap.utils : order, Order;
 
 /** 
  * Payload marker
