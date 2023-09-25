@@ -282,6 +282,9 @@ public class CoapClient
             {
                 // TODO: Retransmit
                 writeln("YO WE FOUND A TIMED OUT BAD BOI: ", curReq);
+
+                // TODO: Manipulate and make a new packet!
+                transmitRequest(curReq);
             }
         }
         requestsLock.unlock();
