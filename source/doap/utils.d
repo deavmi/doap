@@ -1,7 +1,7 @@
 /**
  * Utility functions
  */
-module doap.protocol.utils;
+module doap.utils;
 
 /** 
  * Flips the given integral value
