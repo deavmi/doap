@@ -206,17 +206,17 @@ public class CoapClient
     }
 
     /** 
-     * Given a token this will try and find an active
+     * Given a packet this will try and find an active
      * request with a matching token and return it.
      *
      * This will also remove it from the requests queue.
      *
      * Params:
-     *   token = the token
+     *   packet = the packet received
      * Returns: the original `CoapRequest` if a match
      * is found, otherwise `null`
      */
-    package CoapRequest yankRequest(ubyte[] token)
+    package CoapRequest yankRequest(CoapPacket packet)
     {
         CoapRequest foundRequest = null;
 
@@ -224,7 +224,7 @@ public class CoapClient
 
         foreach(CoapRequest request; outgoingRequests)
         {
-            if(request.getToken() == token)
+            if(request.getMid() == packet.getMessageId())
             {
                 foundRequest = request;
                 outgoingRequests.linearRemoveElement(foundRequest);
