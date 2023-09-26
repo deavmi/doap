@@ -69,6 +69,9 @@ public class CoapClient
         this.requestsLock = new Mutex();
         this.midsLock = new Mutex();
 
+        // FIXME: Change to algorithmic later
+        this.setExchangeLifetime(dur!("seconds")(5));
+
         init();
     }
 
