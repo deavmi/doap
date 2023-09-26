@@ -35,8 +35,18 @@ public T flip(T)(T bytesIn) if(__traits(isIntegral, T))
  */
 unittest
 {
-    ubyte[] data = [1,2];
-    assert(flip(data) == [2,1]);
+    version(BigEndian)
+    {
+        ushort i = 1;
+        ushort flipped = flip(i);
+        assert(flipped == 256);
+    }
+    else version(LittleEndian)
+    {
+        ushort i = 1;
+        ushort flipped = flip(i);
+        assert(flipped == 256);
+    }
 }
 
 /** 
