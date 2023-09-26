@@ -78,27 +78,6 @@ public class CoapClient
     }
 
     /** 
-     * Generates a new message ID
-     *
-     * Returns: the next message id
-     */
-    private final ushort newMid()
-    {
-        ushort newValue;
-
-        // Lock rolling counter
-        this.rollingLock.lock();
-
-        newValue = this.rollingMid;
-        this.rollingMid++;
-
-        // Unlock rolling counter
-        this.rollingLock.unlock();
-
-        return newValue;
-    }
-
-    /** 
      * Maximum lifetime of a message ID before
      * it is considered for re-use
      */
