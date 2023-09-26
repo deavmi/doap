@@ -3,6 +3,11 @@
  */
 module doap.utils;
 
+version(unittest)
+{
+    import std.stdio : writeln;
+}
+
 /** 
  * Flips the given integral value
  *
