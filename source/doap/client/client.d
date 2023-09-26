@@ -8,6 +8,8 @@ import core.sync.mutex : Mutex;
 import core.sync.condition : Condition;
 import std.container.slist : SList;
 import core.thread : dur, Duration, Thread;
+import std.datetime.stopwatch : StopWatch, AutoStart;
+import doap.utils : findNextFree;
 
 /** 
  * A CoAP client
@@ -40,11 +42,15 @@ public class CoapClient
      */
     private Mutex requestsLock;
 
-    /**
-     * Rolling Message ID
+    /** 
+     * Message IDs and lifetime map
      */
-    private ushort rollingMid;
-    private Mutex rollingLock;
+    private StopWatch[ushort] mids;
+
+    /** 
+     * Lock for the above
+     */
+    private Mutex midsLock;
 
     /** 
      * Creates a new CoAP client to the
@@ -61,11 +67,28 @@ public class CoapClient
         this.messaging = new UDPMessaging(this); //UDP transport
 
         this.requestsLock = new Mutex();
-
-        this.rollingMid = 0;
-        this.rollingLock = new Mutex();
+        this.midsLock = new Mutex();
 
         init();
+    }
+
+    /** 
+     * Maximum lifetime of a message ID before
+     * it is considered for re-use
+     */
+    private Duration EXCHANGE_LIFETIME = dur!("msecs")(180);
+
+    /** 
+     * Sets the exchange lifetime. In other words
+     * the duration of time that must pass before
+     * a message ID is considered free-for-use again
+     *
+     * Params:
+     *   lifetime = the lifetime duration
+     */
+    public void setExchangeLifetime(Duration lifetime)
+    {
+        this.EXCHANGE_LIFETIME = lifetime;
     }
 
     /** 
@@ -73,20 +96,42 @@ public class CoapClient
      *
      * Returns: the next message id
      */
-    private final ushort newMid()
+    private final ushort newMid2()
     {
-        ushort newValue;
-
         // Lock rolling counter
-        this.rollingLock.lock();
+        this.midsLock.lock();
 
-        newValue = this.rollingMid;
-        this.rollingMid++;
+        scope(exit)
+        {
+            // Unlock rolling counter
+            this.midsLock.unlock();
+        }
 
-        // Unlock rolling counter
-        this.rollingLock.unlock();
+        // Message IDs which are in use
+        ushort[] inUse;
 
-        return newValue;
+        foreach(ushort occupied; this.mids.keys())
+        {
+            // Peek the value of the stopwatch
+            if(this.mids[occupied].peek() >= EXCHANGE_LIFETIME)
+            {
+                // It's expired, so we can use it (first reset the time)
+                this.mids[occupied].reset();
+
+                return occupied;
+            }
+            else
+            {
+                inUse ~= occupied;
+            }
+        }
+
+        // If none was available for re-use then find next available
+        // ... free and use that (also don't forget to register it)
+        ushort newMid = findNextFree(inUse);
+        this.mids[newMid] = StopWatch(AutoStart.yes);
+
+        return newMid;
     }
 
     /** 
@@ -172,7 +217,7 @@ public class CoapClient
         requestPacket.setCode(requestBuilder.requestCode);
         requestPacket.setPayload(requestBuilder.pyld);
         requestPacket.setToken(requestBuilder.tkn);
-        requestPacket.setMessageId(newMid());
+        requestPacket.setMessageId(newMid2());
 
         // Create the future
         CoapRequestFuture future = new CoapRequestFuture();
@@ -319,7 +364,15 @@ version(unittest)
 /**
  * Client testing
  *
- * Tests the rolling of the message id
+ * Tests the rolling of the message id,
+ * here I configure the `EXCHANGE_LIFETIME`
+ * to be a value high enough to not have
+ * them quickly expire.
+ *
+ * NOTE: In the future it may be calculated
+ * in relation to other variables and we may
+ * need a private method accessible here that
+ * can override it
  */
 unittest
 {
@@ -331,6 +384,9 @@ unittest
                               .token([69])
                               .post();
 
+
+    // Set it to something high enough (TODO: Change this later)
+    client.setExchangeLifetime(dur!("msecs")(300));
 
     writeln("Future start (first)");
     CoapPacket response = future.get();
