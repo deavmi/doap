@@ -3,6 +3,11 @@
  */
 module doap.utils;
 
+version(unittest)
+{
+    import std.stdio : writeln;
+}
+
 /** 
  * Flips the given integral value
  *
@@ -75,12 +80,6 @@ public T order(T)(T bytesIn, Order order) if(__traits(isIntegral, T))
             return flip(bytesIn);
         }
     }
-}
-
-
-version(unittest)
-{
-    import std.stdio : writeln;
 }
 
 /**
