@@ -105,6 +105,19 @@ public class CoapClient
     private Duration EXCHANGE_LIFETIME = dur!("msecs")(180);
 
     /** 
+     * Sets the exchange lifetime. In other words
+     * the duration of time that must pass before
+     * a message ID is considered free-for-use again
+     *
+     * Params:
+     *   lifetime = the lifetime duration
+     */
+    public void setExchangeLifetime(Duration lifetime)
+    {
+        this.EXCHANGE_LIFETIME = lifetime;
+    }
+
+    /** 
      * Generates a new message ID
      *
      * Returns: the next message id
@@ -381,7 +394,15 @@ version(unittest)
 /**
  * Client testing
  *
- * Tests the rolling of the message id
+ * Tests the rolling of the message id,
+ * here I configure the `EXCHANGE_LIFETIME`
+ * to be a value high enough to not have
+ * them quickly expire.
+ *
+ * NOTE: In the future it may be calculated
+ * in relation to other variables and we may
+ * need a private method accessible here that
+ * can override it
  */
 unittest
 {
@@ -393,6 +414,8 @@ unittest
                               .token([69])
                               .post();
 
+
+    client.setExchangeLifetime(dur!("msecs")(180));
 
     writeln("Future start (first)");
     CoapPacket response = future.get();
