@@ -8,6 +8,8 @@ import core.sync.mutex : Mutex;
 import core.sync.condition : Condition;
 import std.container.slist : SList;
 import core.thread : dur, Duration, Thread;
+import std.datetime.stopwatch : StopWatch, AutoStart;
+import doap.utils : findNextFree;
 
 /** 
  * A CoAP client
@@ -45,14 +47,15 @@ public class CoapClient
      */
     private Condition watcherSignal;
 
-    /**
-     * Rolling Message ID
+    /** 
+     * Message IDs and lifetime map
      */
-    private ushort rollingMid;
-    private Mutex rollingLock;
-
-    import std.datetime.stopwatch : StopWatch, AutoStart;
     private StopWatch[ushort] mids;
+
+    /** 
+     * Lock for the above
+     */
+    private Mutex midsLock;
 
     /** 
      * Creates a new CoAP client to the
@@ -71,8 +74,7 @@ public class CoapClient
         this.requestsLock = new Mutex();
         this.watcherSignal = new Condition(this.requestsLock);
 
-        this.rollingMid = 0;
-        this.rollingLock = new Mutex();
+        this.midsLock = new Mutex();
 
         init();
     }
@@ -104,12 +106,12 @@ public class CoapClient
     private final ushort newMid2()
     {
         // Lock rolling counter
-        this.rollingLock.lock();
+        this.midsLock.lock();
 
         scope(exit)
         {
             // Unlock rolling counter
-            this.rollingLock.unlock();
+            this.midsLock.unlock();
         }
 
         // Message IDs which are in use
@@ -133,7 +135,6 @@ public class CoapClient
 
         // If none was available for re-use then find next available
         // ... free and use that (also don't forget to register it)
-        import doap.utils : findNextFree;
         ushort newMid = findNextFree(inUse);
         this.mids[newMid] = StopWatch(AutoStart.yes);
 
