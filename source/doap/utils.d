@@ -3,6 +3,11 @@
  */
 module doap.utils;
 
+version(unittest)
+{
+    import std.stdio : writeln;
+}
+
 /** 
  * Flips the given integral value
  *
@@ -23,6 +28,25 @@ public T flip(T)(T bytesIn) if(__traits(isIntegral, T))
     }
 
     return copy;
+}
+
+/**
+ * Tests the `flip!(T)(T)` function
+ */
+unittest
+{
+    version(BigEndian)
+    {
+        ushort i = 1;
+        ushort flipped = flip(i);
+        assert(flipped == 256);
+    }
+    else version(LittleEndian)
+    {
+        ushort i = 1;
+        ushort flipped = flip(i);
+        assert(flipped == 256);
+    }
 }
 
 /** 
@@ -77,10 +101,24 @@ public T order(T)(T bytesIn, Order order) if(__traits(isIntegral, T))
     }
 }
 
-
-version(unittest)
+/**
+ * Tests the `order!(T)(T, Order)`
+ */
+unittest
 {
-    import std.stdio : writeln;
+    version(LittleEndian)
+    {
+        ushort i = 1;
+        writeln("Pre-order: ", i);
+        ushort ordered = order(i, Order.BE);
+        writeln("Post-order: ", ordered);
+        assert(ordered == 256);
+    }
+    else version(BigEndian)
+    {
+        // TODO: Add this AND CI tests for it
+    }
+   
 }
 
 unittest
