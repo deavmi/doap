@@ -415,7 +415,8 @@ unittest
                               .post();
 
 
-    // client.setExchangeLifetime(dur!("msecs")(180));
+    // Set it to something high enough (TODO: Change this later)
+    client.setExchangeLifetime(dur!("msecs")(300));
 
     writeln("Future start (first)");
     CoapPacket response = future.get();
