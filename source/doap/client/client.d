@@ -124,8 +124,6 @@ public class CoapClient
      */
     private final ushort newMid2()
     {
-        ushort guessStart = 0;
-
         // Lock rolling counter
         this.rollingLock.lock();
 
@@ -135,6 +133,7 @@ public class CoapClient
             this.rollingLock.unlock();
         }
 
+        // Message IDs which are in use
         ushort[] inUse;
 
         foreach(ushort occupied; this.mids.keys())
@@ -157,9 +156,7 @@ public class CoapClient
         // ... free and use that (also don't forget to register it)
         import doap.utils : findNextFree;
         ushort newMid = findNextFree(inUse);
-
         this.mids[newMid] = StopWatch(AutoStart.yes);
-
 
         return newMid;
     }
