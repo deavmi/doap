@@ -131,6 +131,9 @@ public bool isPresent(T)(T[] array, T value)
     }
 }
 
+/**
+ * Tests the `isPresent!(T)(T[], T)` function
+ */
 unittest
 {
     ubyte[] values = [1,2,3];
@@ -170,6 +173,9 @@ public T findNextFree(T)(T[] used) if(__traits(isIntegral, T))
     }
 }
 
+/**
+ * Tests the `findNextFree!(T)(T[])` function
+ */
 unittest
 {
     ubyte[] values = [1,2,3];
