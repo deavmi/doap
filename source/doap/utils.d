@@ -83,6 +83,9 @@ version(unittest)
     import std.stdio : writeln;
 }
 
+/**
+ * Tests the `order!(T)(T, Order)`
+ */
 unittest
 {
     version(LittleEndian)
