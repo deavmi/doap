@@ -161,7 +161,7 @@ public T findNextFree(T)(T[] used) if(__traits(isIntegral, T))
     else
     {
         found = 0;
-        while(isPresent(used, found))
+        while(isPresent(used, found)) // FIXME: Constant loop if none available
         {
             found++;
         }
