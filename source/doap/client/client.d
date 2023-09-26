@@ -43,11 +43,6 @@ public class CoapClient
     private Mutex requestsLock;
 
     /** 
-     * Condition variable for watcher signalling
-     */
-    private Condition watcherSignal;
-
-    /** 
      * Message IDs and lifetime map
      */
     private StopWatch[ushort] mids;
@@ -72,8 +67,6 @@ public class CoapClient
         this.messaging = new UDPMessaging(this); //UDP transport
 
         this.requestsLock = new Mutex();
-        this.watcherSignal = new Condition(this.requestsLock);
-
         this.midsLock = new Mutex();
 
         init();
