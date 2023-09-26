@@ -30,6 +30,15 @@ public T flip(T)(T bytesIn) if(__traits(isIntegral, T))
     return copy;
 }
 
+/**
+ * Tests the `flip!(T)(T)` function
+ */
+unittest
+{
+    ubyte[] data = [1,2];
+    assert(flip(data) == [2,1]);
+}
+
 /** 
  * Ordering
  */
