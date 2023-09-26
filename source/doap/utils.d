@@ -111,11 +111,6 @@ unittest
    
 }
 
-version(unittest)
-{
-    import std.stdio : writeln;
-}
-
 unittest
 {
     version(LittleEndian)
