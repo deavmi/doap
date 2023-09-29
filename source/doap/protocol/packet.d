@@ -178,7 +178,7 @@ public class CoapPacket
         if(lenType == OptionLenType.ZERO_TO_TWELVE)
         {
             // Encode the length directly
-            ubyte lenHdr = cast(ubyte)(len&15);
+            ubyte lenHdr = cast(ubyte)(len&15);  // TODO: Remove useless and
 
             // Add the `(Option delta | Option length)`
             encoded[0] |= lenHdr;   
@@ -186,7 +186,7 @@ public class CoapPacket
         else if(lenType == OptionLenType._8BIT_EXTENDED)
         {
             // Encode the value 13
-            ubyte lenHdr = cast(ubyte)(13&15);
+            ubyte lenHdr = cast(ubyte)(13&15); // TODO: Remove useless and
 
             // Add the `(Option delta | Option length)`
             encoded[0] |= lenHdr;
@@ -196,7 +196,14 @@ public class CoapPacket
         }
         else if(lenType == OptionLenType._12_BIT_EXTENDED)
         {
+             // Encode the value 14
+            ubyte lenHdr = cast(ubyte)(14&15);  // TODO: Remove useless and
 
+            // Add the `(Option delta | Option length)`
+            encoded[0] |= lenHdr;
+
+            // Now tack on the length-269
+            encoded ~= toBytes(order(len-269, Order.BE));
         }
         else
         {
