@@ -116,6 +116,39 @@ public class CoapPacket
         return this.options;
     }
 
+    /** 
+     * Given a payload size this determins
+     * the required type of option length
+     * encoding to be used.
+     *
+     * If the size is unsupported then
+     * `OptionLenType.UPPER_PAYLOAD_MARKER`
+     * is returned.
+     *
+     * Params:
+     *   dataSize = the payload's size
+     * Returns: the `OptionLenType`
+     */
+    private static OptionLenType determineLenType(size_t dataSize)
+    {
+        if(dataSize >= 0 && dataSize <= 12)
+        {
+            return OptionLenType.ZERO_TO_TWELVE;
+        }
+        else if(dataSize >= 13 && dataSize <= 268)
+        {
+            return OptionLenType._8BIT_EXTENDED;
+        }
+        else if(dataSize >= 269 && dataSize <= 65804)
+        {
+            return OptionLenType._12_BIT_EXTENDED;
+        }
+        else
+        {
+            return OptionLenType.UPPER_PAYLOAD_MARKER;
+        }
+    }
+
 
     public void setType(MessageType type)
     {
