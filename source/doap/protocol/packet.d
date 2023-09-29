@@ -31,6 +31,24 @@ public struct CoapOption
 // TODO: remove this
 import std.stdio : writeln;
 
+
+private enum OptionLenType
+{
+    ZERO_TO_TWELVE,
+    _8BIT_EXTENDED,
+    _12_BIT_EXTENDED,
+    UPPER_PAYLOAD_MARKER
+}
+
+private enum OptionDeltaType
+{
+    ZERO_TO_TWELVE,
+    _8BIT_EXTENDED,
+    _12_BIT_EXTENDED,
+    UPPER_PAYLOAD_MARKER
+}
+
+
 /** 
  * Represents a CoAP packet
  */
@@ -114,6 +132,72 @@ public class CoapPacket
     {
         // TODO: Implement ordering here
         return this.options;
+    }
+
+    /** 
+     * Given a payload size this determines
+     * the required type of option length
+     * encoding to be used.
+     *
+     * If the size is unsupported then
+     * `OptionLenType.UPPER_PAYLOAD_MARKER`
+     * is returned.
+     *
+     * Params:
+     *   dataSize = the payload's size
+     * Returns: the `OptionLenType`
+     */
+    private static OptionLenType determineLenType(size_t dataSize)
+    {
+        if(dataSize >= 0 && dataSize <= 12)
+        {
+            return OptionLenType.ZERO_TO_TWELVE;
+        }
+        else if(dataSize >= 13 && dataSize <= 268)
+        {
+            return OptionLenType._8BIT_EXTENDED;
+        }
+        else if(dataSize >= 269 && dataSize <= 65804)
+        {
+            return OptionLenType._12_BIT_EXTENDED;
+        }
+        else
+        {
+            return OptionLenType.UPPER_PAYLOAD_MARKER;
+        }
+    }
+
+    /** 
+     * Given an option ID this determines
+     * the required type of option id
+     * encoding to be used.
+     *
+     * If the size is unsupported then
+     * `OptionLenType.UPPER_PAYLOAD_MARKER`
+     * is returned.
+     *
+     * Params:
+     *   id = the option id
+     * Returns: the `OptionDeltaType`
+     */
+    private static OptionDeltaType determineOptionType(size_t id)
+    {
+        if(id >= 0 && id <= 12)
+        {
+            return OptionDeltaType.ZERO_TO_TWELVE;
+        }
+        else if(id >= 13 && id <= 268)
+        {
+            return OptionDeltaType._8BIT_EXTENDED;
+        }
+        else if(id >= 269 && id <= 65804)
+        {
+            return OptionDeltaType._12_BIT_EXTENDED;
+        }
+        else
+        {
+            return OptionDeltaType.UPPER_PAYLOAD_MARKER;
+        }
     }
 
 
@@ -348,12 +432,141 @@ public class CoapPacket
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
+                    // Option length extended (16bit) (14)
+                    else if(optLenType == OptionLenType._12_BIT_EXTENDED)
+                    {
+                        // TODO: THIS IS UNTESTED CODE!!!
+
+                        // Jump to next byte of two bytes (which has length)
+                        idx+=1;
+
+                        // Option length compute (it lacks 269 so add it back)
+                        ushort optLen = order(*cast(ushort*)&data[idx], Order.BE);
+                        optLen+=269;
+                        writeln("Option len: ", optLen);
+
+                        // Jump over the two option length bytes
+                        idx+=2;
+
+                        // Grab the data from [idx, idx+optLen)
+                        ubyte[] optionValue = data[idx..idx+optLen];
+                        writeln("Option value: ", optionValue);
+                        writeln("Option value: ", cast(string)optionValue);
+
+                        // Jump over the option value
+                        idx+=optLen;
+
+                        // Create the option and add it to the list of options
+                        CoapOption option;
+                        option.value = optionValue;
+                        option.id = delta;
+                        writeln("Built option: ", option);
+                        createdOptions ~= option;
+                    }
                 }
                 // 13
                 else if(computed == 13)
                 {
                     writeln("3333 Option delta type: 13 - DEVELOPER ADD SUPPORT! 3333");
-                    assert(false);
+
+                    // TODO: This is UNTESTED code!!!!
+
+                    // Skip over the 4bit tuple
+                    idx+=1;
+
+                    // Delta value is 1 byte (the value found is lacking 13 so add it back)
+                    ubyte deltaAddition = data[idx];
+                    deltaAddition+=13;
+
+                    // Update delta
+                    delta+=deltaAddition;
+
+                    // Our option ID is then calculated from the current delta
+                    ushort optionId = delta;
+
+                    // Jump over the 1 byte option delta
+                    idx+=1;
+
+                    writeln("8 bit option-id delta: ", optionId);
+
+                    // Get the type of option length
+                    OptionLenType optLenType = getOptionLenType(curValue);
+                    writeln("Option length type: ", optLenType);
+
+                    // Simple case (12)
+                    if(optLenType == OptionLenType.ZERO_TO_TWELVE)
+                    {
+                        // Compute the length
+                        ubyte optLen = (curValue&15);
+                        writeln("Option len: ", optLen);
+
+                        // Grab the data from [idx, idx+length)
+                        ubyte[] optionValue = data[idx..idx+optLen];
+                        writeln("Option value: ", optionValue);
+
+                        // Jump over the option value
+                        idx+=optLen;
+
+                        // Create the option and add it to the list of options
+                        CoapOption option;
+                        option.value = optionValue;
+                        option.id = delta;
+                        writeln("Built option: ", option);
+                        createdOptions ~= option;
+                    }
+                    // Option length extended (8bit) (13)
+                    else if(optLenType == OptionLenType._8BIT_EXTENDED)
+                    {
+                        // The total length is the extended value (which lacks 13 so we must add it)
+                        writeln(data[idx..$]);
+                        ubyte optLen8BitExt = data[idx];
+                        ushort optLen = optLen8BitExt+13;
+                        writeln("Option len: ", optLen);
+                        
+                        // Jump over 8bit opt len ext
+                        idx+=1;
+
+                        // Grab the data from [idx, idx+optLen)
+                        ubyte[] optionValue = data[idx..idx+optLen];
+                        writeln("Option value: ", optionValue);
+                        writeln("Option value: ", cast(string)optionValue);
+
+                        // Jump over the option value
+                        idx+=optLen;
+
+                        // Create the option and add it to the list of options
+                        CoapOption option;
+                        option.value = optionValue;
+                        option.id = delta;
+                        writeln("Built option: ", option);
+                        createdOptions ~= option;
+                    }
+                    // Option length extended (16bit) (14)
+                    else if(optLenType == OptionLenType._12_BIT_EXTENDED)
+                    {
+                        // Option length compute (it lacks 269 so add it back)
+                        ushort optLen = order(*cast(ushort*)&data[idx], Order.BE);
+                        optLen+=269;
+                        writeln("Option len: ", optLen);
+
+                        // Jump over the two option length bytes
+                        idx+=2;
+
+                        // Grab the data from [idx, idx+optLen)
+                        ubyte[] optionValue = data[idx..idx+optLen];
+                        writeln("Option value: ", optionValue);
+                        writeln("Option value: ", cast(string)optionValue);
+
+                        // Jump over the option value
+                        idx+=optLen;
+
+                        // Create the option and add it to the list of options
+                        CoapOption option;
+                        option.value = optionValue;
+                        option.id = delta;
+                        writeln("Built option: ", option);
+                        createdOptions ~= option;
+                    }
                 }
                 // 14
                 else if(computed == 14)
@@ -406,6 +619,63 @@ public class CoapPacket
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
+                    // Option length extended (8bit) (13)
+                    else if(optLenType == OptionLenType._8BIT_EXTENDED)
+                    {
+                        // TODO: THIS IS UNTESTED CODE!!!!
+
+                        // The total length is the extended value (which lacks 13 so we must add it)
+                        writeln(data[idx..$]);
+                        ubyte optLen8BitExt = data[idx];
+                        ushort optLen = optLen8BitExt+13;
+                        writeln("Option len: ", optLen);
+                        
+                        // Jump over 8bit opt len ext
+                        idx+=1;
+
+                        // Grab the data from [idx, idx+optLen)
+                        ubyte[] optionValue = data[idx..idx+optLen];
+                        writeln("Option value: ", optionValue);
+                        writeln("Option value: ", cast(string)optionValue);
+
+                        // Jump over the option value
+                        idx+=optLen;
+
+                        // Create the option and add it to the list of options
+                        CoapOption option;
+                        option.value = optionValue;
+                        option.id = delta;
+                        writeln("Built option: ", option);
+                        createdOptions ~= option;
+                    }
+                    // Option length extended (16bit) (14)
+                    else if(optLenType == OptionLenType._12_BIT_EXTENDED)
+                    {
+                        // TODO: THIS IS UNTESTED CODE!!!!
+
+                        // Option length compute (it lacks 269 so add it back)
+                        ushort optLen = order(*cast(ushort*)&data[idx], Order.BE);
+                        optLen+=269;
+                        writeln("Option len: ", optLen);
+
+                        // Jump over the two option length bytes
+                        idx+=2;
+
+                        // Grab the data from [idx, idx+optLen)
+                        ubyte[] optionValue = data[idx..idx+optLen];
+                        writeln("Option value: ", optionValue);
+                        writeln("Option value: ", cast(string)optionValue);
+
+                        // Jump over the option value
+                        idx+=optLen;
+
+                        // Create the option and add it to the list of options
+                        CoapOption option;
+                        option.value = optionValue;
+                        option.id = delta;
+                        writeln("Built option: ", option);
+                        createdOptions ~= option;
+                    }
                     else
                     {
                         writeln("OptionDelta14 Mode: We don't yet support other option lengths in this mode");
@@ -444,14 +714,14 @@ public class CoapPacket
         return packet;
     }
 
-    private enum OptionLenType
-    {
-        ZERO_TO_TWELVE,
-        _8BIT_EXTENDED,
-        _12_BIT_EXTENDED,
-        UPPER_PAYLOAD_MARKER
-    }
-
+    /** 
+     * Extracts the option length encoding
+     * type from the header
+     *
+     * Params:
+     *   hdr = the header
+     * Returns: the `OptionLenType`
+     */
     private static OptionLenType getOptionLenType(ubyte hdr)
     {
         ubyte type = (hdr&15);
@@ -467,16 +737,10 @@ public class CoapPacket
         {
             return OptionLenType._12_BIT_EXTENDED;
         }
-        else if(type == 15)
+        else
         {
             return OptionLenType.UPPER_PAYLOAD_MARKER;
         }
-        else
-        {
-            writeln("GetOptionLenType(): Major error if this happens");
-            assert(false);
-        }
-        
     }
 
     
@@ -498,6 +762,28 @@ public class CoapPacket
 version(unittest)
 {
     import std.stdio;
+}
+
+/**
+ * Tests `CoapPacket`'s `determineLenType(size_t)'
+ */
+unittest
+{
+    assert(CoapPacket.determineLenType(12) == OptionLenType.ZERO_TO_TWELVE);
+    assert(CoapPacket.determineLenType(268) == OptionLenType._8BIT_EXTENDED);
+    assert(CoapPacket.determineLenType(65804) == OptionLenType._12_BIT_EXTENDED);
+    assert(CoapPacket.determineLenType(65804+1) == OptionLenType.UPPER_PAYLOAD_MARKER);
+}
+
+/**
+ * Tests `CoapPacket`'s `determineOptionType(size_t)'
+ */
+unittest
+{
+    assert(CoapPacket.determineOptionType(12) == OptionDeltaType.ZERO_TO_TWELVE);
+    assert(CoapPacket.determineOptionType(268) == OptionDeltaType._8BIT_EXTENDED);
+    assert(CoapPacket.determineOptionType(65804) == OptionDeltaType._12_BIT_EXTENDED);
+    assert(CoapPacket.determineOptionType(65804+1) == OptionDeltaType.UPPER_PAYLOAD_MARKER);
 }
 
 /**
@@ -622,4 +908,57 @@ unittest
 
     CoapPacket packet = CoapPacket.fromBytes(testingIn);
     writeln(packet);
+}
+
+/**
+ * Tests the minimum size required for a packet
+ * (Negative case)
+ */
+unittest
+{
+    ubyte[] testingIn = [];
+
+    try
+    {
+        CoapPacket packet = CoapPacket.fromBytes(testingIn);
+        assert(false);
+    }
+    catch(CoapException e)
+    {
+        assert(true);
+    }
+
+    testingIn = [ 0x41, 0x02, 0xcd];
+
+    try
+    {
+        CoapPacket packet = CoapPacket.fromBytes(testingIn);
+        assert(false);
+    }
+    catch(CoapException e)
+    {
+        assert(true);
+    }
+}
+
+/**
+ * Tests the minimum size required for a packet
+ * (Positive case)
+ */
+unittest
+{
+    // FIXME: Actually make a better example
+    // ubyte[] testingIn = [0x41, 0x02, 0xcd, 0x47];
+
+    // try
+    // {
+    //     CoapPacket packet = CoapPacket.fromBytes(testingIn);
+
+    //     // TODO: Test
+    //     assert(true);
+    // }
+    // catch(CoapException e)
+    // {
+    //     assert(false);
+    // }
 }
