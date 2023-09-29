@@ -353,6 +353,28 @@ public class CoapPacket
                 else if(computed == 13)
                 {
                     writeln("3333 Option delta type: 13 - DEVELOPER ADD SUPPORT! 3333");
+
+                    // TODO: This is UNTESTED code!!!!
+
+                    // Skip over the 4bit tuple
+                    idx+=1;
+
+                    // Delta value is 1 byte (the value found is lacking 13 so add it back)
+                    ubyte deltaAddition = data[idx];
+                    deltaAddition+=13;
+
+                    // Update delta
+                    delta+=deltaAddition;
+
+                    // Our option ID is then calculated from the current delta
+                    ushort optionId = delta;
+
+                    // Jump over the 1 byte option delta
+                    idx+=1;
+
+                    writeln("8 bit option-id delta: ", optionId);
+
+
                     assert(false);
                 }
                 // 14
