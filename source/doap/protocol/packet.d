@@ -412,8 +412,23 @@ public class CoapPacket
                     // Simple case (12)
                     if(optLenType == OptionLenType.ZERO_TO_TWELVE)
                     {
-                        // TODO: Implement me
-                        assert(false);
+                        // Compute the length
+                        ubyte optLen = (curValue&15);
+                        writeln("Option len: ", optLen);
+
+                        // Grab the data from [idx, idx+length)
+                        ubyte[] optionValue = data[idx..idx+optLen];
+                        writeln("Option value: ", optionValue);
+
+                        // Jump over the option value
+                        idx+=optLen;
+
+                        // Create the option and add it to the list of options
+                        CoapOption option;
+                        option.value = optionValue;
+                        option.id = delta;
+                        writeln("Built option: ", option);
+                        createdOptions ~= option;
                     }
                     // Option length extended (8bit) (13)
                     else if(optLenType == OptionLenType._8BIT_EXTENDED)
