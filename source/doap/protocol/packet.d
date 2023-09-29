@@ -167,7 +167,7 @@ public class CoapPacket
             encoded ~= optHdr;
 
             // Now tack on the delta-269
-            encoded ~= toBytes(order(delta-269, Order.BE));
+            encoded ~= toBytes(order(cast(ushort)(delta-269), Order.BE));
         }
         else
         {
@@ -203,7 +203,7 @@ public class CoapPacket
             encoded[0] |= lenHdr;
 
             // Now tack on the length-269
-            encoded ~= toBytes(order(len-269, Order.BE));
+            encoded ~= toBytes(order(cast(ushort)(len-269), Order.BE));
         }
         else
         {
