@@ -809,3 +809,25 @@ unittest
     CoapPacket packet = CoapPacket.fromBytes(testingIn);
     writeln(packet);
 }
+
+/**
+ * Tests the minimum size required for a packet
+ * (Negative case)
+ */
+unittest
+{
+    ubyte[] testingIn = [];
+
+    try
+    {
+        CoapPacket packet = CoapPacket.fromBytes(testingIn);
+        assert(false);
+    }
+    catch(CoapException e)
+    {
+        assert(true);
+    }
+}
+
+
+// 0x41, 0x02, 0xcd, 0x47
