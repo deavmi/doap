@@ -405,6 +405,27 @@ public class CoapPacket
 
                     writeln("8 bit option-id delta: ", optionId);
 
+                    // Get the type of option length
+                    OptionLenType optLenType = getOptionLenType(curValue);
+                    writeln("Option length type: ", optLenType);
+
+                    // Simple case (12)
+                    if(optLenType == OptionLenType.ZERO_TO_TWELVE)
+                    {
+                        // TODO: Implement me
+                        assert(false);
+                    }
+                    // Option length extended (8bit) (13)
+                    else if(optLenType == OptionLenType._8BIT_EXTENDED)
+                    {
+                        // TODO: Implement me
+                        assert(false);
+                    }
+                    // Option length extended (16bit) (14)
+                    else if(optLenType == OptionLenType._12_BIT_EXTENDED)
+                    {
+                        assert(false);
+                    }
 
 
 
