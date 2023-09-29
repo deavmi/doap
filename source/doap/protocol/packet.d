@@ -841,5 +841,24 @@ unittest
     }
 }
 
+/**
+ * Tests the minimum size required for a packet
+ * (Positive case)
+ */
+unittest
+{
+    // FIXME: Actually make a better example
+    // ubyte[] testingIn = [0x41, 0x02, 0xcd, 0x47];
 
-// 0x41, 0x02, 0xcd, 0x47
+    // try
+    // {
+    //     CoapPacket packet = CoapPacket.fromBytes(testingIn);
+
+    //     // TODO: Test
+    //     assert(true);
+    // }
+    // catch(CoapException e)
+    // {
+    //     assert(false);
+    // }
+}
