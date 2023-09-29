@@ -446,16 +446,12 @@ public class CoapPacket
         CoapOption[] createdOptions;
         if(remainder.length)
         {
-            // import std.container.slist : SList;
-            // SList!(CoapOption) createdOptions;
+            // Last option ID
+            ushort lastOptionId = 0;
 
-            // First "previous" delta is 0
-            ushort delta = 0;
-
-            ushort curOptionNumber;
             while(true)
             {
-                writeln("Delta (ENTER): ", delta);
+                writeln("Last Option ID (ENTER): ", lastOptionId);
                 writeln("Remainder [from-idx..$] (ENTER): ", data[idx..$]);
 
                 scope(exit)
@@ -477,19 +473,27 @@ public class CoapPacket
 
                 }
 
-
+                // Option delta
                 ubyte computed = (curValue&240) >> 4;
-                writeln("Computed delta: ", computed);
+                writeln("Computed delta-type: ", computed);
+
+                // New option id
+                ushort curOptionId;
 
                 // 0 to 12 Option ID
                 if(computed >= 0 && computed <= 12)
                 {
                     writeln("Delta is 0 to 12");
 
-                    // In such a case the delta we add on is this 4 bit eneity
-                    delta+=computed;
-                    writeln("Option id: ", delta);
+                    // The ption-delta-type IS the delta
+                    ubyte delta = computed;
 
+                    // The new option ID is the lastOption+delta
+                    curOptionId = cast(ushort)(lastOptionId+delta);
+                    writeln("Option id: ", curOptionId);
+
+                    // Update the last option id
+                    lastOptionId = curOptionId;
 
                     // Get the type of option length
                     OptionLenType optLenType = getOptionLenType(curValue);
@@ -515,7 +519,7 @@ public class CoapPacket
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
-                        option.id = delta;
+                        option.id = curOptionId;
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
@@ -545,7 +549,7 @@ public class CoapPacket
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
-                        option.id = delta;
+                        option.id = curOptionId;
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
@@ -576,7 +580,7 @@ public class CoapPacket
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
-                        option.id = delta;
+                        option.id = curOptionId;
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
@@ -592,19 +596,18 @@ public class CoapPacket
                     idx+=1;
 
                     // Delta value is 1 byte (the value found is lacking 13 so add it back)
-                    ubyte deltaAddition = data[idx];
-                    deltaAddition+=13;
+                    ushort delta = data[idx]+13;
 
-                    // Update delta
-                    delta+=deltaAddition;
+                    // New option id is the lastOptionId+delta
+                    curOptionId = cast(ushort)(lastOptionId+delta);
 
-                    // Our option ID is then calculated from the current delta
-                    ushort optionId = delta;
+                    // Update the last option id
+                    lastOptionId = curOptionId;
 
                     // Jump over the 1 byte option delta
                     idx+=1;
 
-                    writeln("8 bit option-id delta: ", optionId);
+                    writeln("8 bit option-id: ", curOptionId);
 
                     // Get the type of option length
                     OptionLenType optLenType = getOptionLenType(curValue);
@@ -627,7 +630,7 @@ public class CoapPacket
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
-                        option.id = delta;
+                        option.id = curOptionId;
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
@@ -654,7 +657,7 @@ public class CoapPacket
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
-                        option.id = delta;
+                        option.id = curOptionId;
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
@@ -680,7 +683,7 @@ public class CoapPacket
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
-                        option.id = delta;
+                        option.id = curOptionId;
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
@@ -698,20 +701,19 @@ public class CoapPacket
                     ushort unProcessedValue = *(cast(ushort*)optionIdBytes.ptr);
 
                     // The value found is then lacking 269 (so add it back)
-                    ushort deltaAddition = order(unProcessedValue, Order.BE);
-                    deltaAddition+=269;
-                    writeln("Delta additin: ", deltaAddition);
+                    ushort delta = cast(ushort)(order(unProcessedValue, Order.BE)+269);
+                    writeln("Delta: ", delta);
 
-                    // Update delta
-                    delta+=deltaAddition;
+                    // Our option ID is then calculated from lastOptionId+delya
+                    curOptionId = cast(ushort)(lastOptionId+delta);
 
-                    // Our option ID is then calculated from the current delta
-                    ushort optionId = delta;
+                    // Update the last option id
+                    lastOptionId = curOptionId;
 
                     // Jump over [Option delta extended (16bit)] here
                     idx+=2;
 
-                    writeln("16 bit option-id delta: ", optionId);
+                    writeln("16 bit option-id: ", curOptionId);
 
                     // Get the option length type
                     OptionLenType optLenType = getOptionLenType(curValue);
@@ -733,7 +735,7 @@ public class CoapPacket
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
-                        option.id = optionId;
+                        option.id = curOptionId;
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
@@ -762,7 +764,7 @@ public class CoapPacket
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
-                        option.id = delta;
+                        option.id = curOptionId;
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
@@ -790,7 +792,7 @@ public class CoapPacket
                         // Create the option and add it to the list of options
                         CoapOption option;
                         option.value = optionValue;
-                        option.id = delta;
+                        option.id = curOptionId;
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
