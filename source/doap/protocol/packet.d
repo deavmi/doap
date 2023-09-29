@@ -488,7 +488,7 @@ public class CoapPacket
                 {
                     writeln("Delta is 0 to 12");
 
-                    // The ption-delta-type IS the delta
+                    // The option-delta-type IS the delta
                     ubyte delta = computed;
 
                     // The new option ID is the lastOption+delta
@@ -727,21 +727,6 @@ public class CoapPacket
                         // Jump over the option value
                         idx+=optLen;
                     }
-                    else
-                    {
-                        writeln("OptionDelta14 Mode: We don't yet support other option lengths in this mode");
-                        assert(false);
-                    }
-
-
-
-                    
-                    
-                    // Move onto the first byte of the next two (16 bit BE option-length extended)
-
-                    writeln("Support not yet finished for delta type 14");
-
-                    // break;
                 }
                 // 15
                 else if(computed == 15)
