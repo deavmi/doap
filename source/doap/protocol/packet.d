@@ -106,6 +106,11 @@ public class CoapPacket
     // TODO: Make public in the future
     private static ubyte[] encodeOption(CoapOption option)
     {
+
+        size_t length = option.value.length;
+
+        // if(length)
+
         // TODO: Implement this
         return [];
     }
