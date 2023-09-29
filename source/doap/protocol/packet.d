@@ -227,6 +227,11 @@ public class CoapPacket
         this.options ~= [option];
     }
 
+    public CoapOption[] getOptions()
+    {
+        return this.options.dup;
+    }
+
     /** 
      * Given a payload size this determines
      * the required type of option length
@@ -902,6 +907,8 @@ unittest
     // Now try decode the packet to we can see if it decodes
     // ... the options correctly
     CoapPacket actualPacket = CoapPacket.fromBytes(encodedPacket);
+
+    actualPacket.getOptions();
 
 
     writeln("\n\n");
