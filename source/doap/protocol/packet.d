@@ -720,6 +720,17 @@ version(unittest)
 }
 
 /**
+ * Tests `CoapPacket`'s `determineLenType(size_t)'
+ */
+unittest
+{
+    assert(CoapPacket.determineLenType(12) == CoapPacket.OptionLenType.ZERO_TO_TWELVE);
+    assert(CoapPacket.determineLenType(268) == CoapPacket.OptionLenType._8BIT_EXTENDED);
+    assert(CoapPacket.determineLenType(65804) == CoapPacket.OptionLenType._12_BIT_EXTENDED);
+    assert(CoapPacket.determineLenType(65804+1) == CoapPacket.OptionLenType.UPPER_PAYLOAD_MARKER);
+}
+
+/**
  * Encoding tests
  *
  * These set high level parameters and then
