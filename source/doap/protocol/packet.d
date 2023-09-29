@@ -823,8 +823,55 @@ unittest
     writeln(packet);
 }
 
-
+/**
+ * Tests the minimum size required for a packet
+ * (Negative case)
+ */
 unittest
 {
-    // TODO: Test out other options here
+    ubyte[] testingIn = [];
+
+    try
+    {
+        CoapPacket packet = CoapPacket.fromBytes(testingIn);
+        assert(false);
+    }
+    catch(CoapException e)
+    {
+        assert(true);
+    }
+
+    testingIn = [ 0x41, 0x02, 0xcd];
+
+    try
+    {
+        CoapPacket packet = CoapPacket.fromBytes(testingIn);
+        assert(false);
+    }
+    catch(CoapException e)
+    {
+        assert(true);
+    }
+}
+
+/**
+ * Tests the minimum size required for a packet
+ * (Positive case)
+ */
+unittest
+{
+    // FIXME: Actually make a better example
+    // ubyte[] testingIn = [0x41, 0x02, 0xcd, 0x47];
+
+    // try
+    // {
+    //     CoapPacket packet = CoapPacket.fromBytes(testingIn);
+
+    //     // TODO: Test
+    //     assert(true);
+    // }
+    // catch(CoapException e)
+    // {
+    //     assert(false);
+    // }
 }
