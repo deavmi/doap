@@ -671,6 +671,14 @@ public class CoapPacket
         UPPER_PAYLOAD_MARKER
     }
 
+    private enum OptionDeltaType
+    {
+        ZERO_TO_TWELVE,
+        _8BIT_EXTENDED,
+        _12_BIT_EXTENDED,
+        UPPER_PAYLOAD_MARKER
+    }
+
     private static OptionLenType getOptionLenType(ubyte hdr)
     {
         ubyte type = (hdr&15);
