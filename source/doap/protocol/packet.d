@@ -348,6 +348,37 @@ public class CoapPacket
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
+                    // Option length extended (16bit) (14)
+                    else if(optLenType == OptionLenType._12_BIT_EXTENDED)
+                    {
+                        // TODO: THIS IS UNTESTED CODE!!!
+
+                        // Jump to next byte of two bytes (which has length)
+                        idx+=1;
+
+                        // Option length compute (it lacks 269 so add it back)
+                        ushort optLen = order(*cast(ushort*)&data[idx], Order.BE);
+                        optLen+=269;
+                        writeln("Option len: ", optLen);
+
+                        // Jump over the two option length bytes
+                        idx+=2;
+
+                        // Grab the data from [idx, idx+optLen)
+                        ubyte[] optionValue = data[idx..idx+optLen];
+                        writeln("Option value: ", optionValue);
+                        writeln("Option value: ", cast(string)optionValue);
+
+                        // Jump over the option value
+                        idx+=optLen;
+
+                        // Create the option and add it to the list of options
+                        CoapOption option;
+                        option.value = optionValue;
+                        option.id = delta;
+                        writeln("Built option: ", option);
+                        createdOptions ~= option;
+                    }
                 }
                 // 13
                 else if(computed == 13)
@@ -373,6 +404,8 @@ public class CoapPacket
                     idx+=1;
 
                     writeln("8 bit option-id delta: ", optionId);
+
+
 
 
                     assert(false);
