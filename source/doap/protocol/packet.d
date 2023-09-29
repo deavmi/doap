@@ -539,6 +539,16 @@ public class CoapPacket
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
+                    // Option length extended (8bit) (13)
+                    else if(optLenType == OptionLenType._8BIT_EXTENDED)
+                    {
+                        // TODO: THIS IS UNTESTED CODE!!!!
+                    }
+                    // Option length extended (16bit) (14)
+                    else if(optLenType == OptionLenType._12_BIT_EXTENDED)
+                    {
+                        // TODO: THIS IS UNTESTED CODE!!!!
+                    }
                     else
                     {
                         writeln("OptionDelta14 Mode: We don't yet support other option lengths in this mode");
