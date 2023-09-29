@@ -956,54 +956,6 @@ unittest
 }
 
 /**
- * Tests the encoding of the following
- * combination for options encoding:
- *
- * 1. 0-12 Option delta
- * 2. 0-12 Option length
- */
-unittest
-{
-    writeln("\n\n");
-
-    // This option decoded correctly from a real-world example
-    // ... so I dog food the expected output
-    // ubyte[] expectedEncode = [146, 39, 17];
-
-    // ushort optionId_expected = 12;
-    // ubyte[] optionValue_expected = [39, 17];
-    // CoapOption option = CoapOption(optionId_expected, optionValue_expected);
-
-
-
-    // ubyte[] encoded = CoapPacket.encodeOption(option);
-    // writeln("Encoded option: ", encoded);
-
-    // assert(encoded == expectedEncode);
-
-    writeln("\n\n");
-}
-
-unittest
-{
-    writeln("\n\n");
-
-    // This option decoded correctly from a real-world example
-    // ... so I dog food the expected output
-
-
-    // ushort optionId_expected = 3;
-    // ubyte[] optionValue_expected = cast(ubyte[])"100.64.0.12:5683";
-    // CoapOption option = CoapOption(optionId_expected, optionValue_expected);
-
-
-    // ubyte[] encoded = CoapPacket.encodeOption(option);
-    // writeln("Encoded option: ", encoded);
-
-    writeln("\n\n");
-}
-
-/**
  * Encoding tests
  *
  * These set high level parameters and then
