@@ -736,10 +736,10 @@ version(unittest)
  */
 unittest
 {
-    assert(CoapPacket.determineLenType(12) == CoapPacket.OptionLenType.ZERO_TO_TWELVE);
-    assert(CoapPacket.determineLenType(268) == CoapPacket.OptionLenType._8BIT_EXTENDED);
-    assert(CoapPacket.determineLenType(65804) == CoapPacket.OptionLenType._12_BIT_EXTENDED);
-    assert(CoapPacket.determineLenType(65804+1) == CoapPacket.OptionLenType.UPPER_PAYLOAD_MARKER);
+    assert(CoapPacket.determineLenType(12) == OptionLenType.ZERO_TO_TWELVE);
+    assert(CoapPacket.determineLenType(268) == OptionLenType._8BIT_EXTENDED);
+    assert(CoapPacket.determineLenType(65804) == OptionLenType._12_BIT_EXTENDED);
+    assert(CoapPacket.determineLenType(65804+1) == OptionLenType.UPPER_PAYLOAD_MARKER);
 }
 
 /**
