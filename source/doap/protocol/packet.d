@@ -1004,6 +1004,26 @@ unittest
 
     CoapPacket packet = CoapPacket.fromBytes(testingIn);
     writeln(packet);
+
+    CoapOption[] expectedOptions = [
+        CoapOption(3, [0x31, 0x30, 0x30, 0x2e, 0x36, 0x34, 0x2e, 0x30, 0x2e, 0x31, 0x32, 0x3a, 0x35, 0x36, 0x38, 0x33]),
+        CoapOption(12, [0x27, 0x11]),
+        CoapOption(65001, [0x01]),
+        CoapOption(65003, [0x10]),
+        CoapOption(65005, [0x01])
+    ];
+
+
+    CoapOption[] options = packet.getOptions();
+    assert(expectedOptions.length == options.length);
+    writeln(options[0]);
+    writeln(expectedOptions[0]);
+    assert(options[0] == expectedOptions[0]);
+    assert(options[1] == expectedOptions[1]);
+    assert(options[2] == expectedOptions[2]);
+    assert(options[3] == expectedOptions[3]);
+    assert(options[4] == expectedOptions[4]);
+
 }
 
 
