@@ -129,7 +129,7 @@ public class CoapPacket
         ubyte[] encoded;
 
         // Update delta to option.id-delta
-        delta = option.id-delta;
+        delta = cast(ushort)(option.id-delta);
 
         // Determine the option id type
         OptionDeltaType optType = determineOptionType(option.id);
@@ -141,8 +141,8 @@ public class CoapPacket
         // Construct the header (option delta)
         if(optType == OptionDeltaType.ZERO_TO_TWELVE)
         {
-            // Encode the option id directly
-            ubyte optHdr = cast(ubyte)(option.id<<4);
+            // Encode the option delta directly
+            ubyte optHdr = cast(ubyte)(delta<<4);
 
             // Add the `(Option delta | Option length)`
             encoded ~= optHdr;
@@ -155,8 +155,8 @@ public class CoapPacket
             // Add the `(Option delta | Option length)`
             encoded ~= optHdr;
 
-            // Now tack on the option.id-13
-            encoded ~= cast(ubyte)(option.id-13);
+            // Now tack on the delta-13
+            encoded ~= cast(ubyte)(delta-13);
         }
         else if(optType == OptionDeltaType._12_BIT_EXTENDED)
         {
@@ -166,8 +166,8 @@ public class CoapPacket
             // Add the `(Option delta | Option length)`
             encoded ~= optHdr;
 
-            // Now tack on the option.id-269
-            encoded ~= toBytes(order(option.id-269, Order.BE));
+            // Now tack on the delta-269
+            encoded ~= toBytes(order(delta-269, Order.BE));
         }
         else
         {
@@ -185,7 +185,14 @@ public class CoapPacket
         }
         else if(lenType == OptionLenType._8BIT_EXTENDED)
         {
+            // Encode the value 13
+            ubyte lenHdr = cast(ubyte)(13&15);
 
+            // Add the `(Option delta | Option length)`
+            encoded[0] |= lenHdr;
+
+            // Now tack on the length-13
+            encoded ~= [cast(ubyte)(len-13)];
         }
         else if(lenType == OptionLenType._12_BIT_EXTENDED)
         {
@@ -206,6 +213,11 @@ public class CoapPacket
     {
         // TODO: Implement ordering here
         return this.options;
+    }
+
+    public void addOption(CoapOption option)
+    {
+        this.options ~= [option];
     }
 
     /** 
@@ -864,13 +876,25 @@ unittest
 {
     writeln("\n\n");
 
-    CoapOption[] options = [
+    CoapOption[] expectedOptions = [
         CoapOption(3, [49, 48, 48, 46, 54, 52, 46, 48, 46, 49, 50, 58, 53, 54, 56, 51]),
         CoapOption(12, [39, 17]),
-        CoapOption(65001, [1]),
-        CoapOption(65003, [16]),
-        CoapOption(65005, [1])
+        // CoapOption(65001, [1]),
+        // CoapOption(65003, [16]),
+        // CoapOption(65005, [1])
     ];
+
+    CoapPacket pack = new CoapPacket();
+    foreach(CoapOption option; expectedOptions)
+    {
+        pack.addOption(option);
+    }
+    
+    ubyte[] encodedPacket = pack.getBytes();
+
+    // Now try decode the packet to we can see if it decodes
+    // ... the options correctly
+    CoapPacket actualPacket = CoapPacket.fromBytes(encodedPacket);
 
 
     writeln("\n\n");
