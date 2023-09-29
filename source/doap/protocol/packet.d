@@ -31,6 +31,24 @@ public struct CoapOption
 // TODO: remove this
 import std.stdio : writeln;
 
+
+private enum OptionLenType
+{
+    ZERO_TO_TWELVE,
+    _8BIT_EXTENDED,
+    _12_BIT_EXTENDED,
+    UPPER_PAYLOAD_MARKER
+}
+
+private enum OptionDeltaType
+{
+    ZERO_TO_TWELVE,
+    _8BIT_EXTENDED,
+    _12_BIT_EXTENDED,
+    UPPER_PAYLOAD_MARKER
+}
+
+
 /** 
  * Represents a CoAP packet
  */
@@ -663,22 +681,14 @@ public class CoapPacket
         return packet;
     }
 
-    private enum OptionLenType
-    {
-        ZERO_TO_TWELVE,
-        _8BIT_EXTENDED,
-        _12_BIT_EXTENDED,
-        UPPER_PAYLOAD_MARKER
-    }
-
-    private enum OptionDeltaType
-    {
-        ZERO_TO_TWELVE,
-        _8BIT_EXTENDED,
-        _12_BIT_EXTENDED,
-        UPPER_PAYLOAD_MARKER
-    }
-
+    /** 
+     * Extracts the option length encoding
+     * type from the header
+     *
+     * Params:
+     *   hdr = the header
+     * Returns: the `OptionLenType`
+     */
     private static OptionLenType getOptionLenType(ubyte hdr)
     {
         ubyte type = (hdr&15);
