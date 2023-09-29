@@ -4,7 +4,7 @@ import doap.protocol.types : MessageType;
 import doap.protocol.codes : Code;
 import doap.exceptions : CoapException;
 import std.conv : to;
-import doap.utils : order, Order;
+import doap.utils : order, Order, toBytes;
 
 /** 
  * Payload marker
@@ -124,9 +124,73 @@ public class CoapPacket
     // TODO: Make public in the future
     private static ubyte[] encodeOption(CoapOption option)
     {
+        // Finally constructed option encoded
+        ubyte[] encoded;
+
+        // Determine the option id type
+        OptionDeltaType optType = determineOptionType(option.id);
 
         // Determine the length type
         OptionLenType lenType = determineLenType(option.value.length);
+
+        // Construct the header (option delta)
+        if(optType == OptionDeltaType.ZERO_TO_TWELVE)
+        {
+            // Encode the option id directly
+            ubyte optHdr = cast(ubyte)(option.id<<4);
+
+            // Add the `(Option delta | Option length)`
+            encoded ~= optHdr;
+
+            // TODO: Do length encode
+        }
+        else if(optType == OptionDeltaType._8BIT_EXTENDED)
+        {
+            // Encode the value 13
+            ubyte optHdr = cast(ubyte)(13<<4);
+
+            // Add the `(Option delta | Option length)`
+            encoded ~= optHdr;
+
+            // Now tack on the option.id-13
+            ubyte optDelta = cast(ubyte)(option.id-13);
+        }
+        else if(optType == OptionDeltaType._12_BIT_EXTENDED)
+        {
+            // Encode the value 14
+            ubyte optHdr = cast(ubyte)(14<<4);
+
+            // Add the `(Option delta | Option length)`
+            encoded ~= optHdr;
+
+            // Now tack on the option.id-269
+            encoded ~= toBytes(order(option.id-269, Order.BE));
+        }
+        else
+        {
+            throw new CoapException("Cannot encode an option with invalid id of '"~to!(string)(option.id)~"'");
+        }
+        
+        // Construct the header (option length)
+        if(lenType == OptionLenType.ZERO_TO_TWELVE)
+        {
+
+        }
+        else if(lenType == OptionLenType._8BIT_EXTENDED)
+        {
+
+        }
+        else if(lenType == OptionLenType._12_BIT_EXTENDED)
+        {
+
+        }
+        else
+        {
+            throw new CoapException("Cannot encode an option with a length of '"~to!(string)(option.value.length)~"'");
+        }
+        
+
+        
 
         // if(length)
 
