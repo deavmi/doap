@@ -135,7 +135,7 @@ public class CoapPacket
     }
 
     /** 
-     * Given a payload size this determins
+     * Given a payload size this determines
      * the required type of option length
      * encoding to be used.
      *
@@ -164,6 +164,39 @@ public class CoapPacket
         else
         {
             return OptionLenType.UPPER_PAYLOAD_MARKER;
+        }
+    }
+
+    /** 
+     * Given an option ID this determines
+     * the required type of option id
+     * encoding to be used.
+     *
+     * If the size is unsupported then
+     * `OptionLenType.UPPER_PAYLOAD_MARKER`
+     * is returned.
+     *
+     * Params:
+     *   id = the option id
+     * Returns: the `OptionDeltaType`
+     */
+    private static OptionDeltaType determineOptionType(size_t id)
+    {
+        if(id >= 0 && id <= 12)
+        {
+            return OptionDeltaType.ZERO_TO_TWELVE;
+        }
+        else if(id >= 13 && id <= 268)
+        {
+            return OptionDeltaType._8BIT_EXTENDED;
+        }
+        else if(id >= 269 && id <= 65804)
+        {
+            return OptionDeltaType._12_BIT_EXTENDED;
+        }
+        else
+        {
+            return OptionDeltaType.UPPER_PAYLOAD_MARKER;
         }
     }
 
@@ -740,6 +773,17 @@ unittest
     assert(CoapPacket.determineLenType(268) == OptionLenType._8BIT_EXTENDED);
     assert(CoapPacket.determineLenType(65804) == OptionLenType._12_BIT_EXTENDED);
     assert(CoapPacket.determineLenType(65804+1) == OptionLenType.UPPER_PAYLOAD_MARKER);
+}
+
+/**
+ * Tests `CoapPacket`'s `determineOptionType(size_t)'
+ */
+unittest
+{
+    assert(CoapPacket.determineOptionType(12) == OptionDeltaType.ZERO_TO_TWELVE);
+    assert(CoapPacket.determineOptionType(268) == OptionDeltaType._8BIT_EXTENDED);
+    assert(CoapPacket.determineOptionType(65804) == OptionDeltaType._12_BIT_EXTENDED);
+    assert(CoapPacket.determineOptionType(65804+1) == OptionDeltaType.UPPER_PAYLOAD_MARKER);
 }
 
 /**
