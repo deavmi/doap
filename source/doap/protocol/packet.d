@@ -888,7 +888,7 @@ unittest
         CoapOption(12, [39, 17]),
         CoapOption(65001, [1]),
         CoapOption(65003, [16]),
-        // CoapOption(65005, [1])
+        CoapOption(65005, [1])
     ];
 
     CoapPacket pack = new CoapPacket();
