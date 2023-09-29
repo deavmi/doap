@@ -480,6 +480,9 @@ public class CoapPacket
                 // New option id
                 ushort curOptionId;
 
+                // Option value
+                ubyte[] optionValue;
+
                 // 0 to 12 Option ID
                 if(computed >= 0 && computed <= 12)
                 {
@@ -491,9 +494,6 @@ public class CoapPacket
                     // The new option ID is the lastOption+delta
                     curOptionId = cast(ushort)(lastOptionId+delta);
                     writeln("Option id: ", curOptionId);
-
-                    // Update the last option id
-                    lastOptionId = curOptionId;
 
                     // Get the type of option length
                     OptionLenType optLenType = getOptionLenType(curValue);
@@ -510,18 +510,11 @@ public class CoapPacket
                         idx+=1;
 
                         // Grab the data from [idx, idx+length)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = curOptionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (8bit) (13)
                     else if(optLenType == OptionLenType._8BIT_EXTENDED)
@@ -539,19 +532,12 @@ public class CoapPacket
                         idx+=1;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = curOptionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (16bit) (14)
                     else if(optLenType == OptionLenType._12_BIT_EXTENDED)
@@ -570,19 +556,12 @@ public class CoapPacket
                         idx+=2;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = curOptionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                 }
                 // 13
@@ -601,9 +580,6 @@ public class CoapPacket
                     // New option id is the lastOptionId+delta
                     curOptionId = cast(ushort)(lastOptionId+delta);
 
-                    // Update the last option id
-                    lastOptionId = curOptionId;
-
                     // Jump over the 1 byte option delta
                     idx+=1;
 
@@ -621,18 +597,11 @@ public class CoapPacket
                         writeln("Option len: ", optLen);
 
                         // Grab the data from [idx, idx+length)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = curOptionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (8bit) (13)
                     else if(optLenType == OptionLenType._8BIT_EXTENDED)
@@ -647,19 +616,12 @@ public class CoapPacket
                         idx+=1;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = curOptionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (16bit) (14)
                     else if(optLenType == OptionLenType._12_BIT_EXTENDED)
@@ -673,19 +635,12 @@ public class CoapPacket
                         idx+=2;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = curOptionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                 }
                 // 14
@@ -707,9 +662,6 @@ public class CoapPacket
                     // Our option ID is then calculated from lastOptionId+delya
                     curOptionId = cast(ushort)(lastOptionId+delta);
 
-                    // Update the last option id
-                    lastOptionId = curOptionId;
-
                     // Jump over [Option delta extended (16bit)] here
                     idx+=2;
 
@@ -727,17 +679,10 @@ public class CoapPacket
                         writeln("Option len: ", optLen);
 
                         // Read the option now
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = curOptionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (8bit) (13)
                     else if(optLenType == OptionLenType._8BIT_EXTENDED)
@@ -754,19 +699,12 @@ public class CoapPacket
                         idx+=1;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = curOptionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (16bit) (14)
                     else if(optLenType == OptionLenType._12_BIT_EXTENDED)
@@ -782,19 +720,12 @@ public class CoapPacket
                         idx+=2;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = curOptionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     else
                     {
@@ -823,7 +754,16 @@ public class CoapPacket
                     assert(false);
                 }
 
-                // break;
+
+                // Create the option and add it to the list of options
+                CoapOption option;
+                option.value = optionValue;
+                option.id = curOptionId;
+                writeln("Built option: ", option);
+                createdOptions ~= option;
+
+                // Update the last option id
+                lastOptionId = curOptionId;
             }
         }
 
