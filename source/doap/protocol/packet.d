@@ -827,6 +827,18 @@ unittest
     {
         assert(true);
     }
+
+    testingIn = [ 0x41, 0x02, 0xcd];
+
+    try
+    {
+        CoapPacket packet = CoapPacket.fromBytes(testingIn);
+        assert(false);
+    }
+    catch(CoapException e)
+    {
+        assert(true);
+    }
 }
 
 
