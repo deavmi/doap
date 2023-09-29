@@ -810,6 +810,20 @@ unittest
     writeln(packet);
 }
 
+
+unittest
+{
+    writeln("Big another coap test (ALSO REAL LIFE FR ONGOD)\n\n");
+
+    ubyte[] testingIn = [
+
+                        ];
+
+    CoapPacket packet = CoapPacket.fromBytes(testingIn);
+    writeln(packet);
+}
+
+
 unittest
 {
     // TODO: Test out other options here
