@@ -934,7 +934,7 @@ unittest
     CoapOption[] actualOptions = actualPacket.getOptions();
 
     // We should have the same number of operations
-    assert(actualOptions.length = expectedOptions.length);
+    assert(actualOptions.length == expectedOptions.length);
 
     for(size_t i = 0; i < expectedOptions.length; i++)
     {
