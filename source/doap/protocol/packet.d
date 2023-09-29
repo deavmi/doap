@@ -141,8 +141,6 @@ public class CoapPacket
 
             // Add the `(Option delta | Option length)`
             encoded ~= optHdr;
-
-            // TODO: Do length encode
         }
         else if(optType == OptionDeltaType._8BIT_EXTENDED)
         {
@@ -153,7 +151,7 @@ public class CoapPacket
             encoded ~= optHdr;
 
             // Now tack on the option.id-13
-            ubyte optDelta = cast(ubyte)(option.id-13);
+            encoded ~= cast(ubyte)(option.id-13);
         }
         else if(optType == OptionDeltaType._12_BIT_EXTENDED)
         {
