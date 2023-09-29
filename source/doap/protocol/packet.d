@@ -107,9 +107,10 @@ public class CoapPacket
         }
 
         // FIXME: Add options encoding
+        ushort curDelta = 0;
         foreach(CoapOption option; orderOptions())
         {
-            encoded ~= encodeOption(option);
+            encoded ~= encodeOption(option, curDelta);
         }
 
         // Set the payload marker
@@ -122,16 +123,20 @@ public class CoapPacket
     }
 
     // TODO: Make public in the future
-    private static ubyte[] encodeOption(CoapOption option)
+    private static ubyte[] encodeOption(CoapOption option, ref ushort delta)
     {
         // Finally constructed option encoded
         ubyte[] encoded;
+
+        // Update delta to option.id-delta
+        delta = option.id-delta;
 
         // Determine the option id type
         OptionDeltaType optType = determineOptionType(option.id);
 
         // Determine the length type
-        OptionLenType lenType = determineLenType(option.value.length);
+        size_t len = option.value.length;
+        OptionLenType lenType = determineLenType(len);
 
         // Construct the header (option delta)
         if(optType == OptionDeltaType.ZERO_TO_TWELVE)
@@ -172,7 +177,11 @@ public class CoapPacket
         // Construct the header (option length)
         if(lenType == OptionLenType.ZERO_TO_TWELVE)
         {
+            // Encode the length directly
+            ubyte lenHdr = cast(ubyte)(len&15);
 
+            // Add the `(Option delta | Option length)`
+            encoded[0] |= lenHdr;   
         }
         else if(lenType == OptionLenType._8BIT_EXTENDED)
         {
@@ -187,13 +196,10 @@ public class CoapPacket
             throw new CoapException("Cannot encode an option with a length of '"~to!(string)(option.value.length)~"'");
         }
         
-
+        // Now tack on the option value
+        encoded ~= option.value;
         
-
-        // if(length)
-
-        // TODO: Implement this
-        return [];
+        return encoded;
     }
 
     private CoapOption[] orderOptions()
@@ -852,6 +858,70 @@ unittest
     assert(CoapPacket.determineOptionType(268) == OptionDeltaType._8BIT_EXTENDED);
     assert(CoapPacket.determineOptionType(65804) == OptionDeltaType._12_BIT_EXTENDED);
     assert(CoapPacket.determineOptionType(65804+1) == OptionDeltaType.UPPER_PAYLOAD_MARKER);
+}
+
+unittest
+{
+    writeln("\n\n");
+
+    CoapOption[] options = [
+        CoapOption(3, [49, 48, 48, 46, 54, 52, 46, 48, 46, 49, 50, 58, 53, 54, 56, 51]),
+        CoapOption(12, [39, 17]),
+        CoapOption(65001, [1]),
+        CoapOption(65003, [16]),
+        CoapOption(65005, [1])
+    ];
+
+
+    writeln("\n\n");
+}
+
+/**
+ * Tests the encoding of the following
+ * combination for options encoding:
+ *
+ * 1. 0-12 Option delta
+ * 2. 0-12 Option length
+ */
+unittest
+{
+    writeln("\n\n");
+
+    // This option decoded correctly from a real-world example
+    // ... so I dog food the expected output
+    // ubyte[] expectedEncode = [146, 39, 17];
+
+    // ushort optionId_expected = 12;
+    // ubyte[] optionValue_expected = [39, 17];
+    // CoapOption option = CoapOption(optionId_expected, optionValue_expected);
+
+
+
+    // ubyte[] encoded = CoapPacket.encodeOption(option);
+    // writeln("Encoded option: ", encoded);
+
+    // assert(encoded == expectedEncode);
+
+    writeln("\n\n");
+}
+
+unittest
+{
+    writeln("\n\n");
+
+    // This option decoded correctly from a real-world example
+    // ... so I dog food the expected output
+
+
+    // ushort optionId_expected = 3;
+    // ubyte[] optionValue_expected = cast(ubyte[])"100.64.0.12:5683";
+    // CoapOption option = CoapOption(optionId_expected, optionValue_expected);
+
+
+    // ubyte[] encoded = CoapPacket.encodeOption(option);
+    // writeln("Encoded option: ", encoded);
+
+    writeln("\n\n");
 }
 
 /**
