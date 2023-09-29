@@ -107,7 +107,8 @@ public class CoapPacket
     private static ubyte[] encodeOption(CoapOption option)
     {
 
-        size_t length = option.value.length;
+        // Determine the length type
+        OptionLenType lenType = determineLenType(option.value.length);
 
         // if(length)
 
