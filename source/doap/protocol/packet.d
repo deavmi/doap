@@ -483,10 +483,6 @@ public class CoapPacket
                         writeln("Built option: ", option);
                         createdOptions ~= option;
                     }
-
-
-
-                    assert(false);
                 }
                 // 14
                 else if(computed == 14)
