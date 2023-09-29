@@ -809,3 +809,8 @@ unittest
     CoapPacket packet = CoapPacket.fromBytes(testingIn);
     writeln(packet);
 }
+
+unittest
+{
+    // TODO: Test out other options here
+}
