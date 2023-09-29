@@ -886,7 +886,7 @@ unittest
     CoapOption[] expectedOptions = [
         CoapOption(3, [49, 48, 48, 46, 54, 52, 46, 48, 46, 49, 50, 58, 53, 54, 56, 51]),
         CoapOption(12, [39, 17]),
-        // CoapOption(65001, [1]),
+        CoapOption(65001, [1]),
         // CoapOption(65003, [16]),
         // CoapOption(65005, [1])
     ];
