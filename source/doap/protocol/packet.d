@@ -904,6 +904,9 @@ unittest
     assert(CoapPacket.determineOptionType(65804+1) == OptionDeltaType.UPPER_PAYLOAD_MARKER);
 }
 
+/**
+ * Tests options encoding
+ */
 unittest
 {
     writeln("\n\n");
@@ -942,7 +945,7 @@ unittest
         writeln("Actual option: ", actualOption);
 
         // Option Ids must match
-        // assert(expectedOption.id == actualOption.id);
+        assert(expectedOption.id == actualOption.id);
 
         // Option values must match
         assert(expectedOption.value == actualOption.value);
