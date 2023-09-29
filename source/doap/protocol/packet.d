@@ -107,10 +107,10 @@ public class CoapPacket
         }
 
         // FIXME: Add options encoding
-        ushort curDelta = 0;
+        ushort lstOptid = 0;
         foreach(CoapOption option; orderOptions())
         {
-            encoded ~= encodeOption(option, curDelta);
+            encoded ~= encodeOption(option, lstOptid);
         }
 
         // Set the payload marker
@@ -123,13 +123,14 @@ public class CoapPacket
     }
 
     // TODO: Make public in the future
-    private static ubyte[] encodeOption(CoapOption option, ref ushort delta)
+    private static ubyte[] encodeOption(CoapOption option, ref ushort lstOptid)
     {
         // Finally constructed option encoded
         ubyte[] encoded;
 
-        // Update delta to option.id-delta
-        delta = cast(ushort)(option.id-delta);
+        // Current option id
+        ushort curOptionId = option.id;
+        writeln("encodeOption: LastOptionId enter: ", curOptionId);
 
         // Determine the option id type
         OptionDeltaType optType = determineOptionType(option.id);
@@ -141,6 +142,12 @@ public class CoapPacket
         // Construct the header (option delta)
         if(optType == OptionDeltaType.ZERO_TO_TWELVE)
         {
+            // Calculate the delta as (curOptionId-lastOptionId)
+            ubyte delta = cast(ubyte)(curOptionId-lstOptid);
+
+            // Update the last option id
+            lstOptid = curOptionId;
+
             // Encode the option delta directly
             ubyte optHdr = cast(ubyte)(delta<<4);
 
@@ -155,8 +162,14 @@ public class CoapPacket
             // Add the `(Option delta | Option length)`
             encoded ~= optHdr;
 
-            // Now tack on the delta-13
-            encoded ~= cast(ubyte)(delta-13);
+            // Calculate the delta as (curOptionId-lstOptionId)-13
+            ubyte delta = cast(ubyte)((curOptionId-lstOptid)-13);
+
+            // Update the last option id
+            lstOptid = curOptionId;
+
+            // Now tack on the delta
+            encoded ~= cast(ubyte)(delta);
         }
         else if(optType == OptionDeltaType._12_BIT_EXTENDED)
         {
@@ -166,8 +179,14 @@ public class CoapPacket
             // Add the `(Option delta | Option length)`
             encoded ~= optHdr;
 
-            // Now tack on the delta-269
-            encoded ~= toBytes(order(cast(ushort)(delta-269), Order.BE));
+            // Calculate the delta as (curOptionid-lstOptinId)-269
+            ushort delta = cast(ushort)(curOptionId-lstOptid-269);
+
+            // Update the last option id
+            lstOptid = curOptionId;
+
+            // Now tack on the delta
+            encoded ~= toBytes(order(cast(ushort)(delta), Order.BE));
         }
         else
         {
@@ -196,7 +215,7 @@ public class CoapPacket
         }
         else if(lenType == OptionLenType._12_BIT_EXTENDED)
         {
-             // Encode the value 14
+            // Encode the value 14
             ubyte lenHdr = cast(ubyte)(14&15);  // TODO: Remove useless and
 
             // Add the `(Option delta | Option length)`
@@ -681,6 +700,7 @@ public class CoapPacket
                     // The value found is then lacking 269 (so add it back)
                     ushort deltaAddition = order(unProcessedValue, Order.BE);
                     deltaAddition+=269;
+                    writeln("Delta additin: ", deltaAddition);
 
                     // Update delta
                     delta+=deltaAddition;
@@ -908,7 +928,25 @@ unittest
     // ... the options correctly
     CoapPacket actualPacket = CoapPacket.fromBytes(encodedPacket);
 
-    actualPacket.getOptions();
+    CoapOption[] actualOptions = actualPacket.getOptions();
+
+    // We should have the same number of operations
+    assert(actualOptions.length = expectedOptions.length);
+
+    for(size_t i = 0; i < expectedOptions.length; i++)
+    {
+        CoapOption expectedOption = expectedOptions[i];
+        CoapOption actualOption = actualOptions[i];
+
+        writeln("Expected option: ", expectedOption);
+        writeln("Actual option: ", actualOption);
+
+        // Option Ids must match
+        // assert(expectedOption.id == actualOption.id);
+
+        // Option values must match
+        assert(expectedOption.value == actualOption.value);
+    }
 
 
     writeln("\n\n");
