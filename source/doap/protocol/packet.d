@@ -686,16 +686,10 @@ public class CoapPacket
         {
             return OptionLenType._12_BIT_EXTENDED;
         }
-        else if(type == 15)
+        else
         {
             return OptionLenType.UPPER_PAYLOAD_MARKER;
         }
-        else
-        {
-            writeln("GetOptionLenType(): Major error if this happens");
-            assert(false);
-        }
-        
     }
 
     
