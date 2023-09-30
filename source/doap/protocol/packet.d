@@ -70,21 +70,62 @@ private enum OptionDeltaType
  */
 public class CoapPacket
 {
+    /** 
+     * The protocol version
+     */
     private ubyte ver;
+
+    /** 
+     * The message type
+     */
     private MessageType type;
+
+    /** 
+     * Token length
+     */
     private ubyte tokenLen;
+
+    /** 
+     * The code
+     */
     private Code code;
+
+    /** 
+     * The message id (mid)
+     */
     private ushort mid;
+
+    /** 
+     * The token (if any)
+     */
     private ubyte[] token;
+
+    /** 
+     * List of options (if any)
+     */
     private CoapOption[] options;
+
+    /** 
+     * The payload (if any)
+     */
     private ubyte[] payload;
 
+    /** 
+     * Constructs a new `CoapPacket` 
+     * with protocol version 1
+     */
     this()
     {
         // Set the version (Default is 1)
         ver = 1;
     }
 
+    /** 
+     * Encodes the current `CoapPacket`
+     * into the byte sequence
+     *
+     * Returns: the bytes
+     */
     public ubyte[] getBytes()
     {
         ubyte[] encoded;
@@ -367,12 +408,26 @@ public class CoapPacket
         }
     }
 
-
+    /** 
+     * Sets the message type
+     *
+     * Params:
+     *   type = the `MessageType`
+     */
     public void setType(MessageType type)
     {
         this.type = type;
     }
 
+    /** 
+     * Sets the token
+     *
+     * Params:
+     *   token = the token to set
+     * Throws:
+     *   CoapException if the token
+     * is too long
+     */
     public void setToken(ubyte[] token)
     {
         if(setTokenLength(token.length))
@@ -385,6 +440,16 @@ public class CoapPacket
         }
     }
 
+    /** 
+     * Attempts to set the token length
+     * and returns whether or not it
+     * was a success
+     *
+     * Params:
+     *   tkl = the token length
+     * Returns: `true` if a valid lenght,
+     * `false` otherwise
+     */
     private bool setTokenLength(ulong tkl)
     {
         if(tkl > 15)
@@ -398,11 +463,23 @@ public class CoapPacket
         }
     }
 
+    /** 
+     * Sets the code
+     *
+     * Params:
+     *   code = the `Code`
+     */
     public void setCode(Code code)
     {
         this.code = code;
     }
 
+    /** 
+     * Sets the message ID
+     *
+     * Params:
+     *   mid = the message id
+     */
     public void setMessageId(ushort mid)
     {
         this.mid = mid;
@@ -413,41 +490,88 @@ public class CoapPacket
         // FIXME: Implement me
     }
 
+    /** 
+     * Sets the payload for this
+     * message
+     *
+     * Params:
+     *   payload = the payload
+     */
     public void setPayload(ubyte[] payload)
     {
         this.payload = payload;
     }
 
+    /** 
+     * Returns the protocol version
+     *
+     * Returns: the version
+     */
     public ubyte getVersion()
     {
         return this.ver;
     }
 
+    /** 
+     * Returns the type of message
+     *
+     * Returns: the `MessageType`
+     */
     public MessageType getType()
     {
         return this.type;
     }
 
+    /** 
+     * Returns the length of the currently
+     * set token
+     *
+     * Returns: the length
+     */
     public ubyte getTokenLength()
     {
         return this.tokenLen;
     }
 
+    /** 
+     * Returns the token
+     *
+     * Returns: the token
+     */
     public ubyte[] getToken()
     {
         return this.token;
     }
 
+    /** 
+     * Returns the code
+     *
+     * Returns: the `Code`
+     */
     public Code getCode()
     {
         return this.code;
     }
 
+    /** 
+     * Returns the message id
+     *
+     * Returns: the message id
+     */
     public ushort getMessageId()
     {
         return this.mid;
     }
 
+    /** 
+     * Decodes the given bytes into a `CoapPacket`
+     *
+     * Params:
+     *   data = the bytes to decode
+     * Returns: a decoded `CoapPacket`
+     * Throws:
+     *   CoapException on error decoding
+     */
     public static CoapPacket fromBytes(ubyte[] data)
     {
         CoapPacket packet = new CoapPacket();
@@ -838,8 +962,12 @@ public class CoapPacket
         }
     }
 
-    
-
+    /** 
+     * Returns a string represenation
+     * of this packet
+     *
+     * Returns: the string
+     */
     public override string toString()
     {
         return "CoapPacket [ver: "~to!(string)(ver)~
@@ -851,7 +979,6 @@ public class CoapPacket
                             ", options: "~to!(string)(options)~
                             "]";
     }
-
 }
 
 version(unittest)
