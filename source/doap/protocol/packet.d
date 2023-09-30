@@ -26,10 +26,15 @@ public struct CoapOption
      */
     public ubyte[] value;
 
-    public int opCmp(CoapOption right)
-    {
-        return this.id-right.id;
-    }
+    // public int opCmp(CoapOption right)
+    // {
+    //     return this.id-right.id;
+    // }
+
+    // public bool opEquals(CoapOption right)
+    // {
+    //     return (this.id == right.id)
+    // }
 }
 
 
