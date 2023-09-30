@@ -25,6 +25,17 @@ public struct CoapOption
      * Option value
      */
     public ubyte[] value;
+
+    public int opCmp(CoapOption right)
+    {
+        return this.id-right.id;
+    }
+}
+
+
+private int optionSort(CoapOption left, CoapOption right)
+{
+    return left.id-right.id;
 }
 
 
@@ -238,14 +249,34 @@ public class CoapPacket
     private CoapOption[] orderOptions()
     {
         // TODO: Implement ordering here
-        return this.options;
+        CoapOption[] sorted = this.options.dup;
+
+        // import std.algorithm.sorting : sort;
+        // import std.functional : binaryFun;
+        // import std.range : SortedRange;
+        // // alias optSort = optionSort;
+        // sort!("a<b")(sorted);
+
+        return sorted;
     }
 
+    /** 
+     * Adds the prvided option
+     *
+     * Params:
+     *   option = the option to add
+     */
     public void addOption(CoapOption option)
     {
         this.options ~= [option];
     }
 
+    /** 
+     * Returns the options currently
+     * configured
+     *
+     * Returns: the options
+     */
     public CoapOption[] getOptions()
     {
         return this.options.dup;
