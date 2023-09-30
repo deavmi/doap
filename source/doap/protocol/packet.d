@@ -232,6 +232,16 @@ public class CoapPacket
         }
     }
 
+    /** 
+     * Attempts to set the token length
+     * and returns whether or not it
+     * was a success
+     *
+     * Params:
+     *   tkl = the token length
+     * Returns: `true` if a valid lenght,
+     * `false` otherwise
+     */
     private bool setTokenLength(ulong tkl)
     {
         if(tkl > 15)
