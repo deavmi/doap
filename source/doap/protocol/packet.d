@@ -54,21 +54,62 @@ private enum OptionDeltaType
  */
 public class CoapPacket
 {
+    /** 
+     * The protocol version
+     */
     private ubyte ver;
+
+    /** 
+     * The message type
+     */
     private MessageType type;
+
+    /** 
+     * Token length
+     */
     private ubyte tokenLen;
+
+    /** 
+     * The code
+     */
     private Code code;
+
+    /** 
+     * The message id (mid)
+     */
     private ushort mid;
+
+    /** 
+     * The token (if any)
+     */
     private ubyte[] token;
+
+    /** 
+     * List of options (if any)
+     */
     private CoapOption[] options;
+
+    /** 
+     * The payload (if any)
+     */
     private ubyte[] payload;
 
+    /** 
+     * Constructs a new `CoapPacket` 
+     * with protocol version 1
+     */
     this()
     {
         // Set the version (Default is 1)
         ver = 1;
     }
 
+    /** 
+     * Encodes the current `CoapPacket`
+     * into the byte sequence
+     *
+     * Returns: the bytes
+     */
     public ubyte[] getBytes()
     {
         ubyte[] encoded;
