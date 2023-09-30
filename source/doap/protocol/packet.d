@@ -200,12 +200,26 @@ public class CoapPacket
         }
     }
 
-
+    /** 
+     * Sets the message type
+     *
+     * Params:
+     *   type = the `MessageType`
+     */
     public void setType(MessageType type)
     {
         this.type = type;
     }
 
+    /** 
+     * Sets the token
+     *
+     * Params:
+     *   token = the token to set
+     * Throws:
+     *   CoapException if the token
+     * is too long
+     */
     public void setToken(ubyte[] token)
     {
         if(setTokenLength(token.length))
@@ -231,11 +245,23 @@ public class CoapPacket
         }
     }
 
+    /** 
+     * Sets the code
+     *
+     * Params:
+     *   code = the `Code`
+     */
     public void setCode(Code code)
     {
         this.code = code;
     }
 
+    /** 
+     * Sets the message ID
+     *
+     * Params:
+     *   mid = the message id
+     */
     public void setMessageId(ushort mid)
     {
         this.mid = mid;
@@ -246,36 +272,74 @@ public class CoapPacket
         // FIXME: Implement me
     }
 
+    /** 
+     * Sets the payload for this
+     * message
+     *
+     * Params:
+     *   payload = the payload
+     */
     public void setPayload(ubyte[] payload)
     {
         this.payload = payload;
     }
 
+    /** 
+     * Returns the protocol version
+     *
+     * Returns: the version
+     */
     public ubyte getVersion()
     {
         return this.ver;
     }
 
+    /** 
+     * Returns the type of message
+     *
+     * Returns: the `MessageType`
+     */
     public MessageType getType()
     {
         return this.type;
     }
 
+    /** 
+     * Returns the length of the currently
+     * set token
+     *
+     * Returns: the length
+     */
     public ubyte getTokenLength()
     {
         return this.tokenLen;
     }
 
+    /** 
+     * Returns the token
+     *
+     * Returns: the token
+     */
     public ubyte[] getToken()
     {
         return this.token;
     }
 
+    /** 
+     * Returns the code
+     *
+     * Returns: the `Code`
+     */
     public Code getCode()
     {
         return this.code;
     }
 
+    /** 
+     * Returns the message id
+     *
+     * Returns: the message id
+     */
     public ushort getMessageId()
     {
         return this.mid;
