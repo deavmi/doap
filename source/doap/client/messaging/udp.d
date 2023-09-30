@@ -7,14 +7,8 @@ import core.sys.posix.sys.socket : MSG_TRUNC;
 import doap.protocol;
 import doap.exceptions;
 import doap.client.request : CoapRequest;
-
 import std.stdio;
-
-import std.socket : Socket, SocketSet;
-import std.socket : Address;
-
-import std.socket : Socket, Address, SocketType, ProtocolType, getAddress, parseAddress, InternetAddress, SocketShutdown;
-
+import std.socket : Socket, SocketSet, Address, SocketType, ProtocolType, getAddress, parseAddress, InternetAddress, SocketShutdown;
 import doap.client.messaging;
 
 /**
