@@ -103,6 +103,8 @@ public T order(T)(T bytesIn, Order order) if(__traits(isIntegral, T))
 
 /**
  * Tests the `order!(T)(T, Order)`
+ *
+ * To Big Endian testing
  */
 unittest
 {
@@ -116,9 +118,37 @@ unittest
     }
     else version(BigEndian)
     {
-        // TODO: Add this AND CI tests for it
+        ushort i = 1;
+        writeln("Pre-order: ", i);
+        ushort ordered = order(i, Order.BE);
+        writeln("Post-order: ", ordered);
+        assert(ordered == i);
     }
-   
+}
+
+/**
+ * Tests the `order!(T)(T, Order)`
+ *
+ * To Little Endian testing
+ */
+unittest
+{
+    version(LittleEndian)
+    {
+        ushort i = 1;
+        writeln("Pre-order: ", i);
+        ushort ordered = order(i, Order.LE);
+        writeln("Post-order: ", ordered);
+        assert(ordered == i);
+    }
+    else version(BigEndian)
+    {
+        ushort i = 1;
+        writeln("Pre-order: ", i);
+        ushort ordered = order(i, Order.LE);
+        writeln("Post-order: ", ordered);
+        assert(ordered == 256);
+    }
 }
 
 /** 
