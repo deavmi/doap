@@ -345,6 +345,15 @@ public class CoapPacket
         return this.mid;
     }
 
+    /** 
+     * Decodes the given bytes into a `CoapPacket`
+     *
+     * Params:
+     *   data = the bytes to decode
+     * Returns: a decoded `CoapPacket`
+     * Throws:
+     *   CoapException on error decoding
+     */
     public static CoapPacket fromBytes(ubyte[] data)
     {
         CoapPacket packet = new CoapPacket();
