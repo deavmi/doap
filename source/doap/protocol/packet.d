@@ -266,13 +266,27 @@ public class CoapPacket
     }
 
     /** 
-     * Adds the prvided option
+     * Adds the prvided option.
      *
+     * If an option already exists
+     * with a matching ID then its
+     * value is updated with the
+     * new one.
+     * 
      * Params:
      *   option = the option to add
      */
     public void addOption(CoapOption option)
     {
+        foreach(CoapOption curOpt; this.options)
+        {
+            if(curOpt.id == option.id)
+            {
+                curOpt.value = option.value;
+                return;
+            }
+        }
+        
         this.options ~= [option];
     }
 
