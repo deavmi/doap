@@ -103,6 +103,8 @@ public T order(T)(T bytesIn, Order order) if(__traits(isIntegral, T))
 
 /**
  * Tests the `order!(T)(T, Order)`
+ *
+ * To Big Endian testing
  */
 unittest
 {
