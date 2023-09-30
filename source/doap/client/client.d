@@ -3,7 +3,8 @@ module doap.client.client;
 import std.socket : Socket, Address, SocketType, ProtocolType, getAddress, parseAddress, InternetAddress, SocketShutdown;
 import doap.client.messaging;
 import doap.protocol;
-import doap.client.request : CoapRequestBuilder, CoapRequest, CoapRequestFuture;
+import doap.client.request : CoapRequestBuilder, CoapRequest, CoapRequestFuture, RequestState;
+import doap.client.exceptions : RequestTimeoutException;
 import core.sync.mutex : Mutex;
 import core.sync.condition : Condition;
 import std.container.slist : SList;
@@ -452,8 +453,8 @@ unittest
 version(unittest)
 {
     import core.time : dur;
-    import doap.client.exceptions : RequestTimeoutException;
-    import doap.client.request : CoapRequestFuture, RequestState;
+    // import doap.client.exceptions : RequestTimeoutException;
+    // import doap.client.request : CoapRequestFuture, RequestState;
 }
 
 /**
