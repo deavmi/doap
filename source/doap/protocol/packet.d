@@ -816,8 +816,12 @@ public class CoapPacket
         }
     }
 
-    
-
+    /** 
+     * Returns a string represenation
+     * of this packet
+     *
+     * Returns: the string
+     */
     public override string toString()
     {
         return "CoapPacket [ver: "~to!(string)(ver)~
@@ -829,7 +833,6 @@ public class CoapPacket
                             ", options: "~to!(string)(options)~
                             "]";
     }
-
 }
 
 version(unittest)
