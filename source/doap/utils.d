@@ -116,9 +116,12 @@ unittest
     }
     else version(BigEndian)
     {
-        // TODO: Add this AND CI tests for it
+        ushort i = 1;
+        writeln("Pre-order: ", i);
+        ushort ordered = order(i, Order.BE);
+        writeln("Post-order: ", ordered);
+        assert(ordered == i);
     }
-   
 }
 
 /** 
