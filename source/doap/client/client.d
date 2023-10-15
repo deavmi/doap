@@ -132,7 +132,12 @@ public class CoapClient
 
         // If none was available for re-use then find next available
         // ... free and use that (also don't forget to register it)
-        ushort newMid = findNextFree(inUse);
+        ushort newMid;
+        bool gotAvailable = findNextFree(inUse, newMid);
+
+        // FIXME: Add a thing which does something
+        // ... if `gotAvailable` is false
+
         this.mids[newMid] = StopWatch(AutoStart.yes);
 
         return newMid;
