@@ -292,6 +292,7 @@ public class CoapPacket
         return encoded;
     }
 
+    // TODO: THIS IS WHAT NEEDS FINISHING!
     private CoapOption[] orderOptions()
     {
         // TODO: Implement ordering here
