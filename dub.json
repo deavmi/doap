@@ -4,7 +4,7 @@
 	],
 	"copyright": "Copyright © 2023, Tristan B. Velloza Kildaire",
 	"dependencies": {
-		"niknaks": ">=0.1.0"
+		"niknaks": ">=0.4.3"
 	},
 	"description": "CoAP library for D",
 	"license": "LGPL v3.0",
