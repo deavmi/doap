@@ -42,10 +42,7 @@ public struct CoapOption
 }
 
 
-private int optionSort(CoapOption left, CoapOption right)
-{
-    return left.id-right.id;
-}
+
 
 
 // TODO: remove this
