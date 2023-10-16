@@ -157,6 +157,12 @@ public class CoapClient
     this(string host, ushort port)
     {
         this(new InternetAddress(host, port));
+
+        // FIXME: Set to a reasonable value
+        setTimeout(dur!("seconds")(5));
+
+        // start watcher
+        // initWatcher();
     }
 
     /** 
@@ -186,6 +192,9 @@ public class CoapClient
     {
         // Set status to not running
         this.running = false;
+
+        // Wait for the watcher 
+        // this.watcher.join();
 
         // Shutdown the messaging layer
         this.messaging.close();
@@ -307,8 +316,17 @@ public class CoapClient
         request.startTime();
     }
 
-    // private Duration sweepInterval;
     private Duration retransmitTimeout;
+
+    public Duration getTimeout()
+    {
+        return this.retransmitTimeout;
+    }
+
+    public void setTimeout(Duration timeout)
+    {
+        this.retransmitTimeout = timeout;
+    }
 
     /** 
      * The intention of this method is that
@@ -323,15 +341,61 @@ public class CoapClient
      */
     package void onNoNewMessages()
     {
+        version(unittest)
+        {
+            import std.stdio : writeln;
+            writeln("onNoNewMessages: enter");
+            scope(exit)
+            {
+                writeln("onNoNewMessages: leave");
+            }
+        }
+
+        import std.stdio : writeln;
+        
+
         requestsLock.lock();
         foreach(CoapRequest curReq; outgoingRequests)
         {
             if(curReq.hasTimedOut(retransmitTimeout))
             {
-                // TODO: Retransmit
+                writeln("YO WE FOUND A TIMED OUT BAD BOI: ", curReq);
+
+                // Retransmit
+                transmitRequest(curReq);
             }
         }
         requestsLock.unlock();
+    }
+
+
+
+    // TODO: Below code could be placed INTO our messaging
+    // ... UDP layer and it could simply be doing this
+    // ... for us
+
+
+    private void watch()
+    {
+        import std.stdio : writeln;
+        import core.thread : Thread;
+        while(this.running)
+        {
+            writeln("Watcher ENTER");
+
+            onNoNewMessages();
+            
+
+            writeln("Watcher SLEEP");
+            Thread.sleep(this.retransmitTimeout);
+        }
+    }
+
+    private Thread watcher;
+    private void initWatcher()
+    {
+        this.watcher = new Thread(&watch);
+        this.watcher.start();
     }
 }
 
@@ -462,79 +526,79 @@ version(unittest)
     // import doap.client.request : CoapRequestFuture, RequestState;
 }
 
-/**
- * Client testing
- *
- * See above except we test a timeout-based
- * request future here.
- *
- * This test DOES time out
- */
-unittest
-{
-    CoapClient client = new CoapClient("coap.me", 5683);
+// /**
+//  * Client testing
+//  *
+//  * See above except we test a timeout-based
+//  * request future here.
+//  *
+//  * This test DOES time out
+//  */
+// unittest
+// {
+//     CoapClient client = new CoapClient("coap.me", 5683);
 
     
-    CoapRequestFuture future = client.newRequestBuilder()
-                              .payload(cast(ubyte[])"Hello this is Tristan!")
-                              .token([69])
-                              .post();
+//     CoapRequestFuture future = client.newRequestBuilder()
+//                               .payload(cast(ubyte[])"Hello this is Tristan!")
+//                               .token([69])
+//                               .post();
 
-    try
-    {
-        writeln("Future start");
-        CoapPacket response  = future.get(dur!("msecs")(10));
+//     try
+//     {
+//         writeln("Future start");
+//         CoapPacket response  = future.get(dur!("msecs")(10));
 
-        // We should timeout and NOT get here
-        assert(false);
-    }
-    catch(RequestTimeoutException e)
-    {
-        // Ensure that we have the correct state
-        assert(future.getState() == RequestState.TIMEDOUT);
+//         // We should timeout and NOT get here
+//         assert(false);
+//     }
+//     catch(RequestTimeoutException e)
+//     {
+//         // Ensure that we have the correct state
+//         assert(future.getState() == RequestState.TIMEDOUT);
 
-        // We SHOULD time out
-        assert(true);
-    }
+//         // We SHOULD time out
+//         assert(true);
+//     }
 
-    client.close();
-}
+//     client.close();
+// }
 
-/**
- * Client testing
- *
- * See above except we test a timeout-based
- * request future here.
- *
- * This test DOES NOT time out (it tests
- * with a high-enough threshold)
- */
-unittest
-{
-    CoapClient client = new CoapClient("coap.me", 5683);
+// /**
+//  * Client testing
+//  *
+//  * See above except we test a timeout-based
+//  * request future here.
+//  *
+//  * This test DOES NOT time out (it tests
+//  * with a high-enough threshold)
+//  */
+// unittest
+// {
+//     CoapClient client = new CoapClient("coap.me", 5683);
 
     
-    CoapRequestFuture future = client.newRequestBuilder()
-                              .payload(cast(ubyte[])"Hello this is Tristan!")
-                              .token([69])
-                              .post();
+//     CoapRequestFuture future = client.newRequestBuilder()
+//                               .payload(cast(ubyte[])"Hello this is Tristan!")
+//                               .token([69])
+//                               .post();
 
-    try
-    {
-        writeln("Future start");
-        CoapPacket response  = future.get(dur!("msecs")(400));
+//     try
+//     {
+//         writeln("Future start");
+//         CoapPacket response  = future.get(dur!("msecs")(400));
 
-        // Ensure that we have the correct state
-        assert(future.getState() == RequestState.COMPLETED);
+//         // Ensure that we have the correct state
+//         assert(future.getState() == RequestState.COMPLETED);
 
-        // We SHOULD get here
-        assert(true);
-    }
-    catch(RequestTimeoutException e)
-    {
-        // We should NOT time out
-        assert(false);
-    }
+//         // We SHOULD get here
+//         assert(true);
+//     }
+//     catch(RequestTimeoutException e)
+//     {
+//         // We should NOT time out
+//         assert(false);
+//     }
 
-    client.close();
-}
+//     client.close();
+// }

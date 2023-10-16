@@ -62,7 +62,18 @@ public class UDPMessaging : CoapMessagingLayer
         // TODO: IF connect fails then don't start messaging
         this.socket = new Socket(getEndpointAddress().addressFamily(), SocketType.DGRAM, ProtocolType.UDP);
         // this.socket.blocking(true);
+
+        // TODO: Busy with this
+        import std.socket : SocketOption, SocketOptionLevel;
+        import core.time : dur;
+        this.socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, dur!("seconds")(5));
+        // this.socket.blocking(false);
+
+
         this.socket.connect(getEndpointAddress());
+
+        
+
 
         // Create the reading-loop thread and start it
         this.readingThread = new Thread(&loop);
@@ -118,62 +129,80 @@ public class UDPMessaging : CoapMessagingLayer
         {
             writeln("h");
 
-
-            // TODO: Add select here, if readbale THEN do the below
             /** 
-             * TODO: Add a call to select(), if NOTHING is available
-             * then call the client's `onNoNewMessages()`.
-             *
-             * After this do a timed `receive()` below (this is where
-             * the thread gets some rest by doing a timed I/O wait).
-             *
-             * Recall, however, we don't want to wait forever, as
-             * we may now have elapsed over a request time-out
-             * for a CoapRequest and should loop back to the top
-             * to call `onNoNewMessages()`
+             * With a UDP socket (so far I have seen) MSG_TRUNC
+             * seems to screw up the `recv()` timeout behaviour,
+             * therefore we should use the peek as our waiting
+             * point, THEN PEEK+TRUNC and then finally normal
+             * `recv()`
              */
-            // SocketSet readSet = new SocketSet();
-            // readSet.add(this.client.socket);
-            // Socket.select(readSet, null, null);
-
-            // If there is NOT data available
-            // if(!readSet.isSet(this.client.socket))
-            // {
-                // writeln("No data available");
-
-                // TODO: Implement me
-            // }
-            
-
-
-
-
-            // TODO: Check if socket is readable, if not,
-            // ... check timers on outstanding messages
-            // ... and do any resends needed
-            SocketFlags flags = cast(SocketFlags)(SocketFlags.PEEK | MSG_TRUNC);
+            SocketFlags flags = cast(SocketFlags)(SocketFlags.PEEK);
             byte[] data;
             data.length = 1; // At least one else never does underlying recv()
+            writeln("I wait recv()");
             ptrdiff_t dgramSize = this.socket.receive(data, flags);
-            
-            // If we have received something then dequeue it of the peeked length
-            if(dgramSize > 0)
+
+            writeln("Peek'd recv: ", dgramSize < 0 ? "Timed out" : "Data available", "(", dgramSize, ")");
+
+            // If we have timed out or socket shutdown or closed
+            if(dgramSize < 0)
             {
-                data.length = dgramSize;
-                this.socket.receive(data);
-                writeln("received size: ", dgramSize);
-                writeln("received bytes: ", data);
+                
 
-                try
+                // TODO: Add up-call to client here
+                writeln("Time out runner running now!");
+                writeln("Status: ", this.socket.getErrorText());
+                writeln("Status SOcket: ", this.socket.isAlive());
+
+                import core.stdc.errno : errno;
+
+                // If we timed out (then we'd still be alive)
+                if(this.socket.isAlive())
                 {
-                    CoapPacket receivedPacket = CoapPacket.fromBytes(cast(ubyte[])data);
-                    writeln("Incoming coap packet: ", receivedPacket);
-
-                    handlePacket(receivedPacket);
+                    writeln("Timed out, doing up-call for retransmission checks");
+                    this.getClient().onNoNewMessages();
+                    writeln("Timed out, doing up-call for retransmission checks [done]");
                 }
-                catch(CoapException e)
+
+            }
+            // If 0 then socket is closed
+            else if(dgramSize == 0)
+            {
+                writeln("Socket closed");
+                writeln("Status SOcket: ", this.socket.isAlive());
+            }
+            // There IS data available
+            else
+            {
+                // Peek but use TRUNC to get the datagram size returned
+                dgramSize = this.socket.receive(data, cast(SocketFlags)(SocketFlags.PEEK | MSG_TRUNC));
+                writeln("MSG_TRUNC, Datagram size is: ", dgramSize);
+
+                // FIXME: Check dgramSize, for case of error (calling on closed, or we get shutdown here)
+                if(dgramSize <= 0)
                 {
-                    writeln("Skipping malformed coap packet");
+                    break;
+                }
+
+                // Now that we have the size, set the request-array's size to it and dequeue
+                data.length = dgramSize;
+                // FIXME: Check return value
+                if(this.socket.receive(data) > 0)
+                {
+                    writeln("received size: ", dgramSize);
+                    writeln("received bytes: ", data);
+
+                    try
+                    {
+                        CoapPacket receivedPacket = CoapPacket.fromBytes(cast(ubyte[])data);
+                        writeln("Incoming coap packet: ", receivedPacket);
+
+                        handlePacket(receivedPacket);
+                    }
+                    catch(CoapException e)
+                    {
+                        writeln("Skipping malformed coap packet");
+                    }
                 }
             }
         }
