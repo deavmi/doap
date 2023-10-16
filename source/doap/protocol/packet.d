@@ -41,10 +41,6 @@ public struct CoapOption
     }
 }
 
-
-
-
-
 // TODO: remove this
 import std.stdio : writeln;
 
@@ -487,9 +483,20 @@ public class CoapPacket
         this.mid = mid;
     }
 
-    public void setOptions()
+    /** 
+     * Adds the provided options
+     *
+     * Params:
+     *   options = the options to
+     * add
+     */
+    public void setOptions(CoapOption[] options)
     {
-        // FIXME: Implement me
+        // Add each option (duplication done in callee)
+        foreach(CoapOption option; options)
+        {
+            addOption(option);
+        }
     }
 
     /** 
