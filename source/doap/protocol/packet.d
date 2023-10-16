@@ -39,11 +39,6 @@ public struct CoapOption
     {
         return this.id-right.id;
     }
-
-    // public bool opEquals(CoapOption right)
-    // {
-    //     return (this.id == right.id)
-    // }
 }
 
 
