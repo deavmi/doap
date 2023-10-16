@@ -4,7 +4,7 @@ import doap.protocol.types : MessageType;
 import doap.protocol.codes : Code;
 import doap.exceptions : CoapException;
 import std.conv : to;
-import doap.utils : order, Order;
+import doap.utils : order, Order, toBytes;
 
 /** 
  * Payload marker
@@ -25,8 +25,21 @@ public struct CoapOption
      * Option value
      */
     public ubyte[] value;
-}
 
+    /** 
+     * Compares this option with
+     * the provided one
+     *
+     * Params:
+     *   right = the right-hand side
+     * `CoapOption` to compare to
+     * Returns: difference
+     */
+    public int opCmp(CoapOption right)
+    {
+        return this.id-right.id;
+    }
+}
 
 // TODO: remove this
 import std.stdio : writeln;
@@ -148,9 +161,10 @@ public class CoapPacket
         }
 
         // FIXME: Add options encoding
+        ushort lstOptid = 0;
         foreach(CoapOption option; orderOptions())
         {
-            encoded ~= encodeOption(option);
+            encoded ~= encodeOption(option, lstOptid);
         }
 
         // Set the payload marker
@@ -163,16 +177,167 @@ public class CoapPacket
     }
 
     // TODO: Make public in the future
-    private static ubyte[] encodeOption(CoapOption option)
+    private static ubyte[] encodeOption(CoapOption option, ref ushort lstOptid)
     {
-        // TODO: Implement this
-        return [];
+        // Finally constructed option encoded
+        ubyte[] encoded;
+
+        // Current option id
+        ushort curOptionId = option.id;
+        writeln("encodeOption: LastOptionId enter: ", curOptionId);
+
+        // Determine the option id type
+        OptionDeltaType optType = determineOptionType(option.id);
+
+        // Determine the length type
+        size_t len = option.value.length;
+        OptionLenType lenType = determineLenType(len);
+
+        // Construct the header (option delta)
+        if(optType == OptionDeltaType.ZERO_TO_TWELVE)
+        {
+            // Calculate the delta as (curOptionId-lastOptionId)
+            ubyte delta = cast(ubyte)(curOptionId-lstOptid);
+
+            // Update the last option id
+            lstOptid = curOptionId;
+
+            // Encode the option delta directly
+            ubyte optHdr = cast(ubyte)(delta<<4);
+
+            // Add the `(Option delta | Option length)`
+            encoded ~= optHdr;
+        }
+        else if(optType == OptionDeltaType._8BIT_EXTENDED)
+        {
+            // Encode the value 13
+            ubyte optHdr = cast(ubyte)(13<<4);
+
+            // Add the `(Option delta | Option length)`
+            encoded ~= optHdr;
+
+            // Calculate the delta as (curOptionId-lstOptionId)-13
+            ubyte delta = cast(ubyte)((curOptionId-lstOptid)-13);
+
+            // Update the last option id
+            lstOptid = curOptionId;
+
+            // Now tack on the delta
+            encoded ~= cast(ubyte)(delta);
+        }
+        else if(optType == OptionDeltaType._12_BIT_EXTENDED)
+        {
+            // Encode the value 14
+            ubyte optHdr = cast(ubyte)(14<<4);
+
+            // Add the `(Option delta | Option length)`
+            encoded ~= optHdr;
+
+            // Calculate the delta as (curOptionid-lstOptinId)-269
+            ushort delta = cast(ushort)(curOptionId-lstOptid-269);
+
+            // Update the last option id
+            lstOptid = curOptionId;
+
+            // Now tack on the delta
+            encoded ~= toBytes(order(cast(ushort)(delta), Order.BE));
+        }
+        else
+        {
+            throw new CoapException("Cannot encode an option with invalid id of '"~to!(string)(option.id)~"'");
+        }
+        
+        // Construct the header (option length)
+        if(lenType == OptionLenType.ZERO_TO_TWELVE)
+        {
+            // Encode the length directly
+            ubyte lenHdr = cast(ubyte)(len&15);  // TODO: Remove useless and
+
+            // Add the `(Option delta | Option length)`
+            encoded[0] |= lenHdr;   
+        }
+        else if(lenType == OptionLenType._8BIT_EXTENDED)
+        {
+            // Encode the value 13
+            ubyte lenHdr = cast(ubyte)(13&15); // TODO: Remove useless and
+
+            // Add the `(Option delta | Option length)`
+            encoded[0] |= lenHdr;
+
+            // Now tack on the length-13
+            encoded ~= [cast(ubyte)(len-13)];
+        }
+        else if(lenType == OptionLenType._12_BIT_EXTENDED)
+        {
+            // Encode the value 14
+            ubyte lenHdr = cast(ubyte)(14&15);  // TODO: Remove useless and
+
+            // Add the `(Option delta | Option length)`
+            encoded[0] |= lenHdr;
+
+            // Now tack on the length-269
+            encoded ~= toBytes(order(cast(ushort)(len-269), Order.BE));
+        }
+        else
+        {
+            throw new CoapException("Cannot encode an option with a length of '"~to!(string)(option.value.length)~"'");
+        }
+        
+        // Now tack on the option value
+        encoded ~= option.value;
+        
+        return encoded;
     }
 
+    /** 
+     * Takes the currently set options
+     * and orders them and returns an ordered
+     * copy
+     *
+     * Returns: the ordered options array
+     */
     private CoapOption[] orderOptions()
     {
-        // TODO: Implement ordering here
-        return this.options;
+        import std.algorithm.sorting : sort;
+        CoapOption[] sorted = sort!("a<b")( this.options.dup).release();
+
+        return sorted;
+    }
+
+    /** 
+     * Adds the prvided option.
+     *
+     * If an option already exists
+     * with a matching ID then its
+     * value is updated with the
+     * new one.
+     * 
+     * Params:
+     *   option = the option to add
+     */
+    public void addOption(CoapOption option)
+    {
+        foreach(CoapOption curOpt; this.options)
+        {
+            if(curOpt.id == option.id)
+            {
+                curOpt.value = option.value;
+                return;
+            }
+        }
+        
+        this.options ~= [option];
+    }
+
+    /** 
+     * Returns the options currently
+     * configured
+     *
+     * Returns: the options
+     */
+    public CoapOption[] getOptions()
+    {
+        return this.options.dup;
     }
 
     /** 
@@ -318,9 +483,20 @@ public class CoapPacket
         this.mid = mid;
     }
 
-    public void setOptions()
+    /** 
+     * Adds the provided options
+     *
+     * Params:
+     *   options = the options to
+     * add
+     */
+    public void setOptions(CoapOption[] options)
     {
-        // FIXME: Implement me
+        // Add each option (duplication done in callee)
+        foreach(CoapOption option; options)
+        {
+            addOption(option);
+        }
     }
 
     /** 
@@ -453,16 +629,12 @@ public class CoapPacket
         CoapOption[] createdOptions;
         if(remainder.length)
         {
-            // import std.container.slist : SList;
-            // SList!(CoapOption) createdOptions;
+            // Last option ID
+            ushort lastOptionId = 0;
 
-            // First "previous" delta is 0
-            ushort delta = 0;
-
-            ushort curOptionNumber;
             while(true)
             {
-                writeln("Delta (ENTER): ", delta);
+                writeln("Last Option ID (ENTER): ", lastOptionId);
                 writeln("Remainder [from-idx..$] (ENTER): ", data[idx..$]);
 
                 scope(exit)
@@ -484,19 +656,27 @@ public class CoapPacket
 
                 }
 
-
+                // Option delta
                 ubyte computed = (curValue&240) >> 4;
-                writeln("Computed delta: ", computed);
+                writeln("Computed delta-type: ", computed);
+
+                // New option id
+                ushort curOptionId;
+
+                // Option value
+                ubyte[] optionValue;
 
                 // 0 to 12 Option ID
                 if(computed >= 0 && computed <= 12)
                 {
                     writeln("Delta is 0 to 12");
 
-                    // In such a case the delta we add on is this 4 bit eneity
-                    delta+=computed;
-                    writeln("Option id: ", delta);
+                    // The option-delta-type IS the delta
+                    ubyte delta = computed;
 
+                    // The new option ID is the lastOption+delta
+                    curOptionId = cast(ushort)(lastOptionId+delta);
+                    writeln("Option id: ", curOptionId);
 
                     // Get the type of option length
                     OptionLenType optLenType = getOptionLenType(curValue);
@@ -513,18 +693,11 @@ public class CoapPacket
                         idx+=1;
 
                         // Grab the data from [idx, idx+length)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = delta;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (8bit) (13)
                     else if(optLenType == OptionLenType._8BIT_EXTENDED)
@@ -542,19 +715,12 @@ public class CoapPacket
                         idx+=1;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = delta;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (16bit) (14)
                     else if(optLenType == OptionLenType._12_BIT_EXTENDED)
@@ -573,19 +739,12 @@ public class CoapPacket
                         idx+=2;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = delta;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                 }
                 // 13
@@ -599,19 +758,15 @@ public class CoapPacket
                     idx+=1;
 
                     // Delta value is 1 byte (the value found is lacking 13 so add it back)
-                    ubyte deltaAddition = data[idx];
-                    deltaAddition+=13;
+                    ushort delta = data[idx]+13;
 
-                    // Update delta
-                    delta+=deltaAddition;
-
-                    // Our option ID is then calculated from the current delta
-                    ushort optionId = delta;
+                    // New option id is the lastOptionId+delta
+                    curOptionId = cast(ushort)(lastOptionId+delta);
 
                     // Jump over the 1 byte option delta
                     idx+=1;
 
-                    writeln("8 bit option-id delta: ", optionId);
+                    writeln("8 bit option-id: ", curOptionId);
 
                     // Get the type of option length
                     OptionLenType optLenType = getOptionLenType(curValue);
@@ -625,18 +780,11 @@ public class CoapPacket
                         writeln("Option len: ", optLen);
 
                         // Grab the data from [idx, idx+length)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = delta;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (8bit) (13)
                     else if(optLenType == OptionLenType._8BIT_EXTENDED)
@@ -651,19 +799,12 @@ public class CoapPacket
                         idx+=1;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = delta;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (16bit) (14)
                     else if(optLenType == OptionLenType._12_BIT_EXTENDED)
@@ -677,19 +818,12 @@ public class CoapPacket
                         idx+=2;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = delta;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                 }
                 // 14
@@ -705,19 +839,16 @@ public class CoapPacket
                     ushort unProcessedValue = *(cast(ushort*)optionIdBytes.ptr);
 
                     // The value found is then lacking 269 (so add it back)
-                    ushort deltaAddition = order(unProcessedValue, Order.BE);
-                    deltaAddition+=269;
+                    ushort delta = cast(ushort)(order(unProcessedValue, Order.BE)+269);
+                    writeln("Delta: ", delta);
 
-                    // Update delta
-                    delta+=deltaAddition;
-
-                    // Our option ID is then calculated from the current delta
-                    ushort optionId = delta;
+                    // Our option ID is then calculated from lastOptionId+delya
+                    curOptionId = cast(ushort)(lastOptionId+delta);
 
                     // Jump over [Option delta extended (16bit)] here
                     idx+=2;
 
-                    writeln("16 bit option-id delta: ", optionId);
+                    writeln("16 bit option-id: ", curOptionId);
 
                     // Get the option length type
                     OptionLenType optLenType = getOptionLenType(curValue);
@@ -731,17 +862,10 @@ public class CoapPacket
                         writeln("Option len: ", optLen);
 
                         // Read the option now
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = optionId;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (8bit) (13)
                     else if(optLenType == OptionLenType._8BIT_EXTENDED)
@@ -758,19 +882,12 @@ public class CoapPacket
                         idx+=1;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = delta;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
                     // Option length extended (16bit) (14)
                     else if(optLenType == OptionLenType._12_BIT_EXTENDED)
@@ -786,35 +903,13 @@ public class CoapPacket
                         idx+=2;
 
                         // Grab the data from [idx, idx+optLen)
-                        ubyte[] optionValue = data[idx..idx+optLen];
+                        optionValue = data[idx..idx+optLen];
                         writeln("Option value: ", optionValue);
                         writeln("Option value: ", cast(string)optionValue);
 
                         // Jump over the option value
                         idx+=optLen;
-
-                        // Create the option and add it to the list of options
-                        CoapOption option;
-                        option.value = optionValue;
-                        option.id = delta;
-                        writeln("Built option: ", option);
-                        createdOptions ~= option;
                     }
-                    else
-                    {
-                        writeln("OptionDelta14 Mode: We don't yet support other option lengths in this mode");
-                        assert(false);
-                    }
-
-
-
-                    
-                    
-                    // Move onto the first byte of the next two (16 bit BE option-length extended)
-
-                    writeln("Support not yet finished for delta type 14");
-
-                    // break;
                 }
                 // 15
                 else if(computed == 15)
@@ -827,7 +922,16 @@ public class CoapPacket
                     assert(false);
                 }
 
-                // break;
+
+                // Create the option and add it to the list of options
+                CoapOption option;
+                option.value = optionValue;
+                option.id = curOptionId;
+                writeln("Built option: ", option);
+                createdOptions ~= option;
+
+                // Update the last option id
+                lastOptionId = curOptionId;
             }
         }
 
@@ -911,6 +1015,65 @@ unittest
     assert(CoapPacket.determineOptionType(268) == OptionDeltaType._8BIT_EXTENDED);
     assert(CoapPacket.determineOptionType(65804) == OptionDeltaType._12_BIT_EXTENDED);
     assert(CoapPacket.determineOptionType(65804+1) == OptionDeltaType.UPPER_PAYLOAD_MARKER);
+}
+
+/**
+ * Tests options encoding
+ */
+unittest
+{
+    writeln("\n\n");
+
+    CoapOption[] expectedOptions = [
+        CoapOption(3, [49, 48, 48, 46, 54, 52, 46, 48, 46, 49, 50, 58, 53, 54, 56, 51]),
+        CoapOption(12, [39, 17]),
+        CoapOption(65001, [1]),
+        CoapOption(65003, [16]),
+        CoapOption(65005, [1])
+    ];
+
+    // Create a new packet
+    CoapPacket pack = new CoapPacket();
+
+    // Create a copy of the options to add, reverse them in place
+    // ... (this is to test that the encoder orders them correctly)
+    import std.algorithm : reverse;
+    foreach(CoapOption option; reverse(expectedOptions.dup))
+    {
+        pack.addOption(option);
+    }
+    
+
+    // Encode
+    ubyte[] encodedPacket = pack.getBytes();
+
+    // Now try decode the packet to we can see if it decodes
+    // ... the options correctly
+    CoapPacket actualPacket = CoapPacket.fromBytes(encodedPacket);
+
+    // Grab the options
+    CoapOption[] actualOptions = actualPacket.getOptions();
+
+    // We should have the same number of operations
+    assert(actualOptions.length == expectedOptions.length);
+
+    for(size_t i = 0; i < expectedOptions.length; i++)
+    {
+        CoapOption expectedOption = expectedOptions[i];
+        CoapOption actualOption = actualOptions[i];
+
+        writeln("Expected option: ", expectedOption);
+        writeln("Actual option: ", actualOption);
+
+        // Option Ids must match
+        assert(expectedOption.id == actualOption.id);
+
+        // Option values must match
+        assert(expectedOption.value == actualOption.value);
+    }
+
+
+    writeln("\n\n");
 }
 
 /**
@@ -1035,7 +1198,44 @@ unittest
 
     CoapPacket packet = CoapPacket.fromBytes(testingIn);
     writeln(packet);
+
+    CoapOption[] expectedOptions = [
+        CoapOption(3, [0x31, 0x30, 0x30, 0x2e, 0x36, 0x34, 0x2e, 0x30, 0x2e, 0x31, 0x32, 0x3a, 0x35, 0x36, 0x38, 0x33]),
+        CoapOption(12, [0x27, 0x11]),
+        CoapOption(65001, [0x01]),
+        CoapOption(65003, [0x10]),
+        CoapOption(65005, [0x01])
+    ];
+
+
+    CoapOption[] options = packet.getOptions();
+    assert(expectedOptions.length == options.length);
+    writeln(options[0]);
+    writeln(expectedOptions[0]);
+    assert(options[0] == expectedOptions[0]);
+    assert(options[1] == expectedOptions[1]);
+    assert(options[2] == expectedOptions[2]);
+    assert(options[3] == expectedOptions[3]);
+    assert(options[4] == expectedOptions[4]);
+
 }
+
+
+// unittest
+// {
+//     writeln("Big another coap test (ALSO REAL LIFE FR ONGOD)\n\n");
+
+//     ubyte[] testingIn = [
+//                             0x61, 0x41, 0xa4, 0xdc, 0x45, 0xc2, 0x27, 0x11, 0xb1, 0x0e, 0xe1,
+//                             0xfc, 0xc5, 0x01, 0x21, 0x10, 0x21, 0x01, 0xff, 0xc4, 0x01, 0xc1,
+//                             0x00, 0x01, 0x46, 0x02, 0x04, 0x12, 0x00, 0x0f, 0x11, 0x03, 0x09,
+//                             0x06, 0x00, 0x00, 0x28, 0x00, 0x00, 0xff, 0x02, 0x02, 0x01, 0x0b,
+//                             0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x03, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x04, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x05, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x06, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x07, 0x16, 0x00, 0x00, 0x02, 0x03, 0x0f, 0x08, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x09, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x0a, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x0b, 0x16, 0x01, 0x00, 0x01, 0x06, 0x02, 0x02, 0x0f, 0x01, 0x16, 0x00, 0x02, 0x02, 0x0f, 0x02, 0x16, 0x00, 0x02, 0x02, 0x0f, 0x03, 0x16, 0x00, 0x02, 0x02, 0x0f, 0x04, 0x16, 0x00, 0x02, 0x02, 0x0f, 0x05, 0x16, 0x00, 0x02, 0x02, 0x0f, 0x06, 0x16, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x00, 0x00, 0x01, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x00, 0x00, 0x02, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x00, 0x00, 0x03, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x01, 0x00, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x00, 0x00, 0x00, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x36, 0x01, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x01, 0x01, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x01, 0x02, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x00, 0x00, 0x05, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x00, 0x02, 0x00, 0x80, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x00, 0x02, 0x00, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x00, 0x02, 0x02, 0x80, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x3a, 0x03, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x3a, 0x0d, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x3a, 0x0e, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x3a, 0x0f, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x3a, 0x13, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x00, 0x00, 0x04, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x3a, 0x14, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x3a, 0x04, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x60, 0x3a, 0x10, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x01, 0x01, 0x86, 0x00, 0x1e, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x03, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x00, 0x02, 0x2b, 0x01, 0x01, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x00, 0x02, 0x2b, 0x01, 0x08, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06, 0x00, 0x02, 0x2b, 0x01, 0x09, 0xff, 0x02, 0x02, 0x01, 0x02, 0x02, 0x03, 0x0f, 0x01, 0x16, 0x01, 0x00, 0x02, 0x03, 0x0f, 0x02, 0x16, 0x01, 0x00, 0x01, 0x00, 0x02, 0x04, 0x12, 0x00, 0x01, 0x11, 0x00, 0x09, 0x06
+//                         ];
+
+//     CoapPacket packet = CoapPacket.fromBytes(testingIn);
+//     writeln(packet);
+// }
 
 /**
  * Tests the minimum size required for a packet

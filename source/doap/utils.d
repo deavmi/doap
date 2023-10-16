@@ -3,5 +3,5 @@
  */
 module doap.utils;
 
-public import niknaks.bits : Order, order;
+public import niknaks.bits : Order, order, toBytes;
 public import niknaks.arrays : findNextFree;
