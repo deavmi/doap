@@ -300,7 +300,7 @@ public class CoapPacket
         
         return encoded;
     }
-    
+
     /** 
      * Takes the currently set options
      * and orders them and returns an ordered
@@ -1033,18 +1033,26 @@ unittest
         CoapOption(65005, [1])
     ];
 
+    // Create a new packet
     CoapPacket pack = new CoapPacket();
-    foreach(CoapOption option; expectedOptions)
+
+    // Create a copy of the options to add, reverse them in place
+    // ... (this is to test that the encoder orders them correctly)
+    import std.algorithm : reverse;
+    foreach(CoapOption option; reverse(expectedOptions.dup))
     {
         pack.addOption(option);
     }
     
+
+    // Encode
     ubyte[] encodedPacket = pack.getBytes();
 
     // Now try decode the packet to we can see if it decodes
     // ... the options correctly
     CoapPacket actualPacket = CoapPacket.fromBytes(encodedPacket);
 
+    // Grab the options
     CoapOption[] actualOptions = actualPacket.getOptions();
 
     // We should have the same number of operations
