@@ -26,10 +26,19 @@ public struct CoapOption
      */
     public ubyte[] value;
 
-    // public int opCmp(CoapOption right)
-    // {
-    //     return this.id-right.id;
-    // }
+    /** 
+     * Compares this option with
+     * the provided one
+     *
+     * Params:
+     *   right = the right-hand side
+     * `CoapOption` to compare to
+     * Returns: difference
+     */
+    public int opCmp(CoapOption right)
+    {
+        return this.id-right.id;
+    }
 
     // public bool opEquals(CoapOption right)
     // {
@@ -291,18 +300,18 @@ public class CoapPacket
         
         return encoded;
     }
-
-    // TODO: THIS IS WHAT NEEDS FINISHING!
+    
+    /** 
+     * Takes the currently set options
+     * and orders them and returns an ordered
+     * copy
+     *
+     * Returns: the ordered options array
+     */
     private CoapOption[] orderOptions()
     {
-        // TODO: Implement ordering here
-        CoapOption[] sorted = this.options.dup;
-
-        // import std.algorithm.sorting : sort;
-        // import std.functional : binaryFun;
-        // import std.range : SortedRange;
-        // // alias optSort = optionSort;
-        // sort!("a<b")(sorted);
+        import std.algorithm.sorting : sort;
+        CoapOption[] sorted = sort!("a<b")( this.options.dup).release();
 
         return sorted;
     }
